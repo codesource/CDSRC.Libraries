@@ -1,7 +1,7 @@
 {
     "name": "cdsrc/libraries",
     "type": "typo3-flow-package",
-    "description": "Add description here",
+    "description": "FLOW3 package containing multiple usefull libraries",
     "require": {
         "typo3/flow": "*"
     },
