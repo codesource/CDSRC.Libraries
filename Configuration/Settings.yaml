@@ -1,0 +1,8 @@
+TYPO3:
+  Flow:
+    persistence:
+      doctrine:
+        eventListeners:
+          -
+            events: ['onFlush']
+            listener: 'CDSRC\Libraries\Translatable\Events\EventListener'
