@@ -17,9 +17,4 @@ namespace CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository;
  */
 class EntityRepository extends \TYPO3\Flow\Persistence\Repository {
 
-	/**
-	 * @var string
-	 */
-	const ENTITY_CLASSNAME = 'CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Entity';
-
 }

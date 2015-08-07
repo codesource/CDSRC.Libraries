@@ -17,7 +17,7 @@ namespace CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use CDSRC\Libraries\Translatable\Domain\Model\TraitTranslatable as Translatable;
+use CDSRC\Libraries\Translatable\Domain\Model\TranslatableTrait as Translatable;
 use TYPO3\Flow\Annotations as Flow;
 use Doctrine\ORM\Mapping as ORM;
 

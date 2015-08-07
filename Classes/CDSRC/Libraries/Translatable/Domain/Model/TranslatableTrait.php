@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * 
  */
-trait TraitTranslatable {
+trait TranslatableTrait {
 
     /**
      * @var \TYPO3\Flow\Persistence\PersistenceManagerInterface

@@ -21,7 +21,7 @@ class EventListener {
         $unitOfWork = $entityManager->getUnitOfWork();
 
         foreach ($unitOfWork->getScheduledEntityInsertions() as $entity) {
-            if (GeneralUtility::useTrait($entity, 'CDSRC\\Libraries\\Translatable\\Domain\\Model\\TraitTranslatable')) {
+            if (GeneralUtility::useTrait($entity, 'CDSRC\\Libraries\\Translatable\\Domain\\Model\\TranslatableTrait')) {
                 $translations = $entity->getTranslations(TRUE);
                 if(count($translations) > 0){
                     $classMetadata = $entityManager->getClassMetadata(get_class(reset($translations)));
@@ -35,7 +35,7 @@ class EventListener {
         }
 
         foreach ($unitOfWork->getScheduledEntityUpdates() as $entity) {
-            if (GeneralUtility::useTrait($entity, 'CDSRC\\Libraries\\Translatable\\Domain\\Model\\TraitTranslatable')) {
+            if (GeneralUtility::useTrait($entity, 'CDSRC\\Libraries\\Translatable\\Domain\\Model\\TranslatableTrait')) {
                 $translations = $entity->getTranslations(TRUE);
                 if(count($translations) > 0){
                     $classMetadata = $entityManager->getClassMetadata(get_class(reset($translations)));
@@ -49,7 +49,7 @@ class EventListener {
         }
 
         foreach ($unitOfWork->getScheduledEntityDeletions() as $entity) {
-            if (GeneralUtility::useTrait($entity, 'CDSRC\\Libraries\\Translatable\\Domain\\Model\\TraitTranslatable')) {
+            if (GeneralUtility::useTrait($entity, 'CDSRC\\Libraries\\Translatable\\Domain\\Model\\TranslatableTrait')) {
                 $translations = $entity->getTranslations(TRUE);
                 if(count($translations) > 0){
                     $classMetadata = $entityManager->getClassMetadata(get_class(reset($translations)));

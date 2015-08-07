@@ -19,7 +19,7 @@ class GenericTranslationField {
      * @var string
      * @Flow\Transient
      */
-    const RELATED_TRAIT = 'CDSRC\\Libraries\\Translatable\\Domain\\Model\\TraitTranslatable';
+    const RELATED_TRAIT = 'CDSRC\\Libraries\\Translatable\\Domain\\Model\\TranslatableTrait';
 
     /**
      * @Flow\Inject

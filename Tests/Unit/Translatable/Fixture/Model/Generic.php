@@ -18,7 +18,7 @@ namespace CDSRC\Libraries\Tests\Unit\Translatable\Fixture\Model;
  */
 
 use CDSRC\Libraries\Translatable\Annotations as CDSRC;
-use CDSRC\Libraries\Translatable\Domain\Model\TraitTranslatable as Translatable;
+use CDSRC\Libraries\Translatable\Domain\Model\TranslatableTrait as Translatable;
 use TYPO3\Flow\Annotations as Flow;
 
 /**
