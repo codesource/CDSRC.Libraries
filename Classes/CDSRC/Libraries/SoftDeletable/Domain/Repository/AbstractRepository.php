@@ -32,6 +32,12 @@ abstract class AbstractRepository extends \TYPO3\Flow\Persistence\Repository {
      *
      * @var boolean 
      */
+    protected $preventNesting = FALSE;
+    
+    /**
+     *
+     * @var boolean 
+     */
     protected $enableDeleted = FALSE;
 
     /**
@@ -64,45 +70,56 @@ abstract class AbstractRepository extends \TYPO3\Flow\Persistence\Repository {
      * {@inheritdoc}
      */
     public function __call($method, $arguments) {
-        $filterMethod = $this->enableDeleted ? 'disableForEntity' : 'enableForEntity';
-        $this->enableDeleted = $this->previousEnableDeleted;
-        return Filter::$filterMethod($this->getEntityClassName(), array($this, '__call'), array($method, $arguments));
+        return $this->wrapCall('__call', array($method, $arguments));
     }
 
     /**
      * {@inheritdoc}
      */
     public function countAll() {
-        $filterMethod = $this->enableDeleted ? 'disableForEntity' : 'enableForEntity';
-        $this->enableDeleted = $this->previousEnableDeleted;
-        return Filter::$filterMethod($this->getEntityClassName(), array($this, 'countAll'));
+        return $this->wrapCall('countAll', array());
     }
 
     /**
      * {@inheritdoc}
      */
     public function findAll() {
-        $filterMethod = $this->enableDeleted ? 'disableForEntity' : 'enableForEntity';
-        $this->enableDeleted = $this->previousEnableDeleted;
-        return Filter::$filterMethod($this->getEntityClassName(), array($this, 'findAll'));
+        return $this->wrapCall('findAll', array());
     }
 
     /**
      * {@inheritdoc}
      */
     public function findByIdentifier($identifier) {
-        $filterMethod = $this->enableDeleted ? 'disableForEntity' : 'enableForEntity';
-        $this->enableDeleted = $this->previousEnableDeleted;
-        return Filter::$filterMethod($this->getEntityClassName(), array($this, 'findByIdentifier'), array($identifier));
+        return $this->wrapCall('findByIdentifier', array($identifier));
     }
 
     /**
      * {@inheritdoc}
      */
     public function createQuery() {
-        $filterMethod = $this->enableDeleted ? 'disableForEntity' : 'enableForEntity';
-        $this->enableDeleted = $this->previousEnableDeleted;
-        return Filter::$filterMethod($this->getEntityClassName(), array($this, 'createQuery'));
+        return $this->wrapCall('createQuery', array());
+    }
+    
+    /**
+     * Wrap call to enable or disable delete check
+     * 
+     * @param string $method
+     * @param array $arguments
+     * 
+     * @return mixed
+     */
+    protected function wrapCall($method, array $arguments){
+        if($this->preventNesting){
+            $result = call_user_func_array('parent::'.$method, $arguments);
+        }else{
+            $this->preventNesting = TRUE;
+            $filterMethod = $this->enableDeleted ? 'disableForEntity' : 'enableForEntity';
+            $this->enableDeleted = $this->previousEnableDeleted;
+            $result = Filter::$filterMethod($this->getEntityClassName(), array($this, $method), $arguments);
+        }
+        $this->preventNesting = FALSE;
+        return $result;
     }
 
 }

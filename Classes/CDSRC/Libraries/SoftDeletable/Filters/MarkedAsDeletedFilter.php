@@ -9,6 +9,7 @@ namespace CDSRC\Libraries\SoftDeletable\Filters;
 
 use CDSRC\Libraries\SoftDeletable\Annotations\SoftDeletable;
 use CDSRC\Libraries\SoftDeletable\Exceptions\PropertyNotFoundException;
+use CDSRC\Libraries\SoftDeletable\Exceptions\InfiniteLoopException;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\Filter\SQLFilter;
 use TYPO3\Flow\Annotations as Flow;
@@ -93,15 +94,17 @@ class MarkedAsDeletedFilter extends SQLFilter {
         $result = TRUE;
         $className = is_object($class) ? get_class($class) : $class;
         if (is_callable($callback)) {
-            if (!self::$nestingLock) {
-                self::$nestingLock = TRUE;
-                if (isset(self::$disabled[$className])) {
-                    $result = call_user_func_array($callback, $parameters);
-                } else {
-                    self::$disabled[$className] = TRUE;
-                    $result = call_user_func_array($callback, $parameters);
-                    unset(self::$disabled[$className]);
-                }
+            if (self::$nestingLock) {
+                self::$nestingLock = FALSE;
+                throw new InfiniteLoopException('Current callback has been call 2 times on disableForEntity method', 1439246602);
+            }
+            self::$nestingLock = TRUE;
+            if (isset(self::$disabled[$className])) {
+                $result = call_user_func_array($callback, $parameters);
+            } else {
+                self::$disabled[$className] = TRUE;
+                $result = call_user_func_array($callback, $parameters);
+                unset(self::$disabled[$className]);
             }
         } else {
             self::$disabled[$className] = TRUE;
@@ -123,18 +126,20 @@ class MarkedAsDeletedFilter extends SQLFilter {
         $className = is_object($class) ? get_class($class) : $class;
         $result = TRUE;
         if (is_callable($callback)) {
-            if (!self::$nestingLock) {
-                self::$nestingLock = TRUE;
-                if (isset(self::$disabled[$className])) {
-                    unset(self::$disabled[$className]);
-                    $result = call_user_func_array($callback, $parameters);
-                    self::$disabled[$className] = TRUE;
-                } else {
-                    $result = call_user_func_array($callback, $parameters);
-                }
+            if (self::$nestingLock) {
+                self::$nestingLock = FALSE;
+                throw new InfiniteLoopException('Current callback has been call 2 times on enableForEntity method', 1439246603);
             }
-        } elseif (isset($this->disabled[$className])) {
-            unset($this->disabled[$className]);
+            self::$nestingLock = TRUE;
+            if (isset(self::$disabled[$className])) {
+                unset(self::$disabled[$className]);
+                $result = call_user_func_array($callback, $parameters);
+                self::$disabled[$className] = TRUE;
+            } else {
+                $result = call_user_func_array($callback, $parameters);
+            }
+        } elseif (isset(self::$disabled[$className])) {
+            unset(self::$disabled[$className]);
         }
         self::$nestingLock = FALSE;
         return $result;
