@@ -8,6 +8,7 @@ This library define all needs to add "soft" and "hard" delete concept to entitie
 
 ### Translatable
 With this library you can translate any entities. 
-By:
+Tow options are available:
+
 * Generic translation based on annotation
 * Specific translation based on a translate table
