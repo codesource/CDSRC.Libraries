@@ -1,6 +1,6 @@
 <?php
 
-namespace CDSRC\Libraries\SoftDeletable\Events\Exceptions;
+namespace CDSRC\Libraries\SoftDeletable\Exceptions;
 
 /* *
  * This script belongs to the TYPO3 Flow package "CDSRC.Libraries".       *
