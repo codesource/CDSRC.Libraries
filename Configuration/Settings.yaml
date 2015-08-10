@@ -6,3 +6,13 @@ TYPO3:
           -
             events: ['onFlush']
             listener: 'CDSRC\Libraries\Translatable\Events\EventListener'
+          -
+            events: ['onFlush']
+            listener: 'CDSRC\Libraries\SoftDeletable\Events\EventListener'
+        filters:
+            'cdsrc.libraries.softdeletable.filter': 'CDSRC\Libraries\SoftDeletable\Filters\MarkedAsDeletedFilter'
+            
+    object:
+      excludeClasses:
+        'CDSRC.Libraries.SoftDeletable':
+          - '\\CDSRC\\Libraries\\SoftDeletable\\Aop\\.*'
