@@ -42,6 +42,13 @@ class MarkedAsDeletedFilter extends SQLFilter {
     protected static $disabled = array();
 
     /**
+     * Make sur that callback will not call again the enableForEntity or disableForEntity
+     * 
+     * @var boolean
+     */
+    protected static $nestingLock = FALSE;
+
+    /**
      * {@inheritdoc}
      */
     public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias) {
@@ -83,19 +90,23 @@ class MarkedAsDeletedFilter extends SQLFilter {
      * @param array $parameters
      */
     public static function disableForEntity($class, $callback = NULL, array $parameters = array()) {
-        $className = is_object($class) ? get_class($class) : $class;
         $result = TRUE;
-        if(is_callable($callback)){
-            if(isset(self::$disabled[$className])){
-                $result = call_user_func_array($callback, $parameters);
-            }else{
-                self::$disabled[$className] = TRUE;
-                $result = call_user_func_array($callback, $parameters);
-                unset(self::$disabled[$className]);
+        $className = is_object($class) ? get_class($class) : $class;
+        if (is_callable($callback)) {
+            if (!self::$nestingLock) {
+                self::$nestingLock = TRUE;
+                if (isset(self::$disabled[$className])) {
+                    $result = call_user_func_array($callback, $parameters);
+                } else {
+                    self::$disabled[$className] = TRUE;
+                    $result = call_user_func_array($callback, $parameters);
+                    unset(self::$disabled[$className]);
+                }
             }
-        }else{
+        } else {
             self::$disabled[$className] = TRUE;
         }
+        self::$nestingLock = FALSE;
         return $result;
     }
 
@@ -111,17 +122,21 @@ class MarkedAsDeletedFilter extends SQLFilter {
     public static function enableForEntity($class, $callback = NULL, array $parameters = array()) {
         $className = is_object($class) ? get_class($class) : $class;
         $result = TRUE;
-        if(is_callable($callback)){
-            if(isset(self::$disabled[$className])){
-                unset(self::$disabled[$className]);
-                $result = call_user_func_array($callback, $parameters);
-                self::$disabled[$className] = TRUE;
-            }else{
-                $result = call_user_func_array($callback, $parameters);
+        if (is_callable($callback)) {
+            if (!self::$nestingLock) {
+                self::$nestingLock = TRUE;
+                if (isset(self::$disabled[$className])) {
+                    unset(self::$disabled[$className]);
+                    $result = call_user_func_array($callback, $parameters);
+                    self::$disabled[$className] = TRUE;
+                } else {
+                    $result = call_user_func_array($callback, $parameters);
+                }
             }
-        }elseif(isset($this->disabled[$className])){
+        } elseif (isset($this->disabled[$className])) {
             unset($this->disabled[$className]);
         }
+        self::$nestingLock = FALSE;
         return $result;
     }
 
@@ -130,7 +145,7 @@ class MarkedAsDeletedFilter extends SQLFilter {
      * 
      * @return \TYPO3\Flow\Reflection\ReflectionService
      */
-    protected function getReflectionService(){
+    protected function getReflectionService() {
         if ($this->reflectionService === null) {
             $this->reflectionService = \TYPO3\Flow\Core\Bootstrap::$staticObjectManager->get('TYPO3\Flow\Reflection\ReflectionService');
         }
@@ -142,7 +157,7 @@ class MarkedAsDeletedFilter extends SQLFilter {
      * 
      * @return \Doctrine\ORM\EntityManager
      */
-    protected function getEntityManager(){
+    protected function getEntityManager() {
         if ($this->entityManager === null) {
             $refl = new \ReflectionProperty('Doctrine\ORM\Query\Filter\SQLFilter', 'em');
             $refl->setAccessible(true);
@@ -150,4 +165,5 @@ class MarkedAsDeletedFilter extends SQLFilter {
         }
         return $this->entityManager;
     }
+
 }
