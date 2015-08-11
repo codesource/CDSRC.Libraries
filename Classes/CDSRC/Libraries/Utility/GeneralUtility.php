@@ -69,7 +69,7 @@ class GeneralUtility {
      * @param string $property
      * @return array
      */
-    static function getPropertyAnnotation($className, $property, $prefix = 'CDSRC\\') {
+    public static function getPropertyAnnotation($className, $property, $prefix = 'CDSRC\\') {
         $_className = (string) $className;
         $_property = (string) $property;
         if (!isset(self::$propertiesAnnontations[$_className][$_property])) {
