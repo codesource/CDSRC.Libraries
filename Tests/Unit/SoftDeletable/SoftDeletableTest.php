@@ -38,6 +38,8 @@ class SoftDeletableTest extends \TYPO3\Flow\Tests\UnitTestCase {
         $this->assertTrue(method_exists($className, 'getDeletedAt'));
         $this->assertTrue(method_exists($className, 'setDeletedBy'));
         $this->assertTrue(method_exists($className, 'getDeletedBy'));
+        $this->assertTrue(method_exists($className, 'getForceDelete'));
+        $this->assertTrue(method_exists($className, 'forceHardDelete'));
         $this->assertTrue(method_exists($className, 'isDeleted'));
     }
     
