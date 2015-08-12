@@ -9,6 +9,9 @@ TYPO3:
           -
             events: ['onFlush']
             listener: 'CDSRC\Libraries\SoftDeletable\Events\EventListener'
+          -
+            events: ['onFlush']
+            listener: 'CDSRC\Libraries\Traceable\Events\EventListener'
         filters:
             'cdsrc.libraries.softdeletable.filter': 'CDSRC\Libraries\SoftDeletable\Filters\MarkedAsDeletedFilter'
             
