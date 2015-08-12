@@ -35,7 +35,7 @@ trait IpTraceableTrait {
      * @CDSRC\Traceable(on="create", value="\CDSRC\Libraries\Traceable\Utility\GeneralUtility::getRemoteAddr()")
      * @ORM\Column(nullable=true)
      */
-    protected $createdFromIp;
+    protected $createdFromIp = NULL;
 
     /**
      *
@@ -43,7 +43,7 @@ trait IpTraceableTrait {
      * @CDSRC\Traceable(on="update", value="\CDSRC\Libraries\Traceable\Utility\GeneralUtility::getRemoteAddr()")
      * @ORM\Column(nullable=true)
      */
-    protected $updatedFromIp;
+    protected $updatedFromIp = NULL;
     
     /**
      * Get IP address of creation

@@ -35,7 +35,7 @@ trait TimestampableTrait {
      * @CDSRC\Traceable(on="create", value="now")
      * @ORM\Column(nullable=true)
      */
-    protected $createdAt;
+    protected $createdAt = NULL;
 
     /**
      *
@@ -43,7 +43,7 @@ trait TimestampableTrait {
      * @CDSRC\Traceable(on="update", value="now")
      * @ORM\Column(nullable=true)
      */
-    protected $updatedAt;
+    protected $updatedAt = NULL;
     
     /**
      * Get datetime of creation
