@@ -76,10 +76,15 @@ class AnnotationValueParser {
                     if (!$class->isInstantiable()) {
                         throw new InvalidValueException('Given class "' . $type . '" is not instantiable', 1439334996);
                     }
-                    if ($class->getConstructor()->getNumberOfRequiredParameters() > 1) {
-                        throw new InvalidValueException('Given class "' . $matches[7] . '" requires more than 1 parameter to be instancied', 1439334997);
+                    $constructor = $class->getConstructor();
+                    if ($constructor) {
+                        if($constructor->getNumberOfRequiredParameters() > 1){
+                            throw new InvalidValueException('Given class "' . $matches[7] . '" requires more than 1 parameter to be instancied', 1439334997);
+                        }
+                        return $class->newInstanceArgs(array($value));
+                    }else{
+                        return $class->newInstanceArgs();
                     }
-                    return $class->newInstanceArgs(array($value));
                 }
                 return $value;
         }
@@ -133,7 +138,8 @@ class AnnotationValueParser {
                     if ($method->isStatic()) {
                         throw new InvalidValueException('Given method "' . $matches[7] . '" can\'t be static', 1439255385);
                     }
-                    $numberOfRequiredParameters = $class->getConstructor()->getNumberOfRequiredParameters();
+                    $constructor = $class->getConstructor();
+                    $numberOfRequiredParameters = $constructor ? $constructor->getNumberOfRequiredParameters() : 0;
                     if ($numberOfRequiredParameters > count($parameters)) {
                         throw new InvalidValueException('Given class "' . $matches[1] . '" requires ' . $numberOfRequiredParameters . ' parameter' . ($numberOfRequiredParameters > 1 ? 's' : '') . ' to be instancied', 1439255395);
                     }
