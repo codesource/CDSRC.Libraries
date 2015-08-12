@@ -71,7 +71,7 @@ class AnnotationValueParser {
             case 'boolean':
                 return $value ? TRUE : FALSE;
             default:
-                if ($forceCreation && class_exists($type)) {
+                if ($forceCreation && class_exists($type) && (!is_object($value) || !is_a($value, $type))) {
                     $class = new \ReflectionClass($type);
                     if (!$class->isInstantiable()) {
                         throw new InvalidValueException('Given class "' . $type . '" is not instantiable', 1439334996);
