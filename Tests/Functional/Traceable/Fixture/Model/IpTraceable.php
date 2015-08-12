@@ -21,8 +21,7 @@ namespace CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Model;
 
 use TYPO3\Flow\Annotations as Flow;
 use Doctrine\ORM\Mapping as ORM;
-use CDSRC\Libraries\Traceable\Annotations as CDSRC;
-use CDSRC\Libraries\Traceable\Domain\Model\TimestampableTrait as Timestampable;
+use CDSRC\Libraries\Traceable\Domain\Model\IpTraceableTrait;
 
 /**
  * A dummy entity
@@ -31,8 +30,8 @@ use CDSRC\Libraries\Traceable\Domain\Model\TimestampableTrait as Timestampable;
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-class Entity {
-    use Timestampable;
+class IpTraceable {
+    use IpTraceableTrait;
 
     /**
      *
@@ -41,35 +40,11 @@ class Entity {
      */
     protected $type;
 
-    /**
-     *
-     * @var \DateTime
-     * @CDSRC\Traceable(on="change", value="now", field="type")
-     * @ORM\Column(nullable=true)
-     */
-    protected $changedAt;
-
-    /**
-     *
-     * @var \DateTime
-     * @CDSRC\Traceable(on="change", value="now", field="type", fieldValues="array('value1', 'value2')")
-     * @ORM\Column(nullable=true)
-     */
-    protected $changedAtIf;
-
     public function __construct($type = '') {
         $this->type = $type;
     }
 
     public function setType($type) {
         $this->type = $type;
-    }
-
-    public function getChangedAt() {
-        return $this->changedAt;
-    }
-
-    public function getChangedAtIf() {
-        return $this->changedAtIf;
     }
 }
