@@ -35,22 +35,36 @@ class AnnotationValueParser {
      * @return mixed
      */
     public static function getValueForEntity(array $config, $entity, $type = NULL, $forceCreation = TRUE) {
+        return self::getValueFor($config, array('entity' => $entity), $type, $forceCreation);
+    }
+    
+    /**
+     * Generate value with some replacements
+     * 
+     * @param array $config
+     * @param array $for
+     * @param string $type
+     * @param boolean $forceCreation
+     * 
+     * @return mixed
+     */
+    public static function getValueFor(array $config, array $for = array(), $type = NULL, $forceCreation = TRUE){
         switch ($config['type']) {
             case self::VALUE_TYPE_FUNCTION:
-                $value = call_user_func_array($config['function'], self::buildArguments($config['arguments'], $entity));
+                $value = call_user_func_array($config['function'], self::buildArgumentsFor($config['arguments'], $for));
                 break;
             case self::VALUE_TYPE_METHOD:
                 $class = new \ReflectionClass($config['object']);
                 $obj = $class->newInstanceArgs(count($config['parameters']) > 0 ? $config['parameters'] : NULL);
-                $value = call_user_func_array(array($obj, $config['method']), self::buildArguments($config['arguments'], $entity));
+                $value = call_user_func_array(array($obj, $config['method']), self::buildArgumentsFor($config['arguments'], $for));
                 break;
             case self::VALUE_TYPE_METHOD_STATIC:
-                $value = forward_static_call_array(array($config['object'], $config['method']), self::buildArguments($config['arguments'], $entity));
+                $value = forward_static_call_array(array($config['object'], $config['method']), self::buildArgumentsFor($config['arguments'], $for));
                 break;
             case self::VALUE_TYPE_ARRAY:
                 $value = array();
                 foreach($config['content'] as $subConfig){
-                    $value[] = self::getValueForEntity($subConfig, $entity, $type);
+                    $value[] = self::getValueFor($subConfig, $for, $type);
                 }
                 break;
             case self::VALUE_TYPE_LITERAL:
@@ -80,7 +94,7 @@ class AnnotationValueParser {
                     $constructor = $class->getConstructor();
                     if ($constructor) {
                         if($constructor->getNumberOfRequiredParameters() > 1){
-                            throw new InvalidValueException('Given class "' . $matches[7] . '" requires more than 1 parameter to be instancied', 1439334997);
+                            throw new InvalidValueException('Given class "' . $type . '" requires more than 1 parameter to be instancied', 1439334997);
                         }
                         return $class->newInstanceArgs(array($value));
                     }else{
@@ -165,17 +179,17 @@ class AnnotationValueParser {
      * Deep build argument array
      * 
      * @param array $arguments
-     * @param object $entity
+     * @param array $for
      * 
      * @return array
      */
-    protected static function buildArguments(array $arguments, &$entity) {
+    protected static function buildArgumentsFor(array $arguments, array $for) {
         $_args = array();
         foreach ($arguments as $argument) {
             if (is_array($argument)) {
-                $_args[] = self::getValueForEntity($argument, $entity);
-            } elseif ($argument === '{entity}') {
-                $_args[] = & $entity;
+                $_args[] = self::getValueFor($argument, $for);
+            } elseif(preg_match('/^\{.*\}$/', $argument) && strlen($key = substr($argument, 1, -1)) > 0 && isset($for[$key])) {
+                $_args[] = & $for[$key];
             }else{
                 $_args[] = $argument;
             }
