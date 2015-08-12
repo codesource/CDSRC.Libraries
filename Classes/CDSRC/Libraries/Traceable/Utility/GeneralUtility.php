@@ -20,14 +20,22 @@ namespace CDSRC\Libraries\Traceable\Utility;
  */
 
 /**
- * Description of GeneralUtility
+ * GeneralUtility for traceable library
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
 class GeneralUtility {
 
-    protected static $REMOTE_ADDR = NULL;
-    protected static $REMOTE_ADDR_WLOCAL = NULL;
+    /**
+     * @var array 
+     */
+    protected static $REMOTE_ADDR = array();
+
+    /**
+     * @var \TYPO3\Flow\Core\Bootstrap
+     * @api
+     */
+    protected static $bootstrap;
 
     /**
      * Get remote address
@@ -35,11 +43,11 @@ class GeneralUtility {
      * @return string|NULL
      */
     public static function getRemoteAddr($includeLocalIp = TRUE) {
-        if (self::$REMOTE_ADDR_WLOCAL !== NULL) {
-            return self::$REMOTE_ADDR_WLOCAL;
+        if (!$includeLocalIp && isset(self::$REMOTE_ADDR['external'])) {
+            return self::$REMOTE_ADDR['external'];
         }
-        if (!$includeLocalIp && self::$REMOTE_ADDR !== NULL) {
-            return self::$REMOTE_ADDR;
+        if ($includeLocalIp && isset(self::$REMOTE_ADDR['all'])) {
+            return self::$REMOTE_ADDR['all'];
         }
         $ipKeys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
         $ipFilter = $includeLocalIp ? FILTER_FLAG_IPV4 : FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE;
@@ -49,15 +57,43 @@ class GeneralUtility {
                     $ip = trim($ip);
                     if (filter_var($ip, FILTER_VALIDATE_IP, $ipFilter) !== FALSE) {
                         if (!$includeLocalIp) {
-                            self::$REMOTE_ADDR = $ip;
+                            self::$REMOTE_ADDR['external'] = $ip;
                         }
-                        self::$REMOTE_ADDR_WLOCAL = $ip;
+                        self::$REMOTE_ADDR['all'] = $ip;
                         return $ip;
                     }
                 }
             }
         }
         return NULL;
+    }
+
+    /**
+     * Retrieve current authenticated account
+     * 
+     * @return \TYPO3\Flow\Security\Account|NULL
+     */
+    public static function getAuthenticatedAccount() {
+        self::initializeBootstrap();
+        if (self::$bootstrap) {
+            $objectManager = self::$bootstrap->getObjectManager();
+            if ($objectManager) {
+                $securityContext = $objectManager->get('\TYPO3\Flow\Security\Context');
+                if ($securityContext && $securityContext->canBeInitialized()) {
+                    return $securityContext->getAccount();
+                }
+            }
+        }
+        return NULL;
+    }
+
+    /**
+     * Initialize boostrap
+     */
+    protected static function initializeBootstrap() {
+        if (!self::$bootstrap) {
+            self::$bootstrap = \TYPO3\Flow\Core\Bootstrap::$staticObjectManager->get('TYPO3\Flow\Core\Bootstrap');
+        }
     }
 
 }
