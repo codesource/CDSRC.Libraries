@@ -44,6 +44,12 @@ final class Traceable {
      * @var array
      */
     public $fieldValues = array();
+    
+    /**
+     *
+     * @var boolean 
+     */
+    public $autocreate = TRUE;
 
     /**
      * @param array $values
@@ -68,6 +74,7 @@ final class Traceable {
                 $this->fieldValues = $fieldValues['type'] === Parser::VALUE_TYPE_ARRAY ? $fieldValues['content'] : array($fieldValues);
             }
         }
+        $this->autocreate = isset($values['autocreate']) && !$values['autocreate'] ? FALSE : TRUE;
     }
 
     /**
@@ -77,7 +84,7 @@ final class Traceable {
      * @param object $entity
      */
     public function getValue($type, $entity) {
-        return Parser::getValueForEntity($this->value, $entity, $type);
+        return Parser::getValueForEntity($this->value, $entity, $type, $this->autocreate);
     }
     
     /**
@@ -91,7 +98,7 @@ final class Traceable {
     public function getFieldValues($type, $entity){
         $values = array();
         foreach($this->fieldValues as $value){
-            $values[] = Parser::getValueForEntity($value, $entity, $type);
+            $values[] = Parser::getValueForEntity($value, $entity, $type, $this->autocreate);
         }
         return $values;
     }
