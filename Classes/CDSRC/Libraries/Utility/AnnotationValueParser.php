@@ -174,6 +174,66 @@ class AnnotationValueParser {
             'content' => $value
         );
     }
+    
+    /**
+     * Check if type is a function or a method
+     * 
+     * @param integer $type
+     * @return boolean
+     */
+    public static function isFunctionOrMethod($type){
+        return in_array($type, array(self::VALUE_TYPE_FUNCTION, self::VALUE_TYPE_METHOD, self::VALUE_TYPE_METHOD_STATIC));
+    }
+    
+    /**
+     * Check if type is a literal value
+     * 
+     * @param integer $type
+     * @return boolean
+     */
+    public static function isLiteral($type){
+        return $type === self::VALUE_TYPE_LITERAL;
+    }
+    
+    /**
+     * Check if type is an array
+     * 
+     * @param integer $type
+     * @return boolean
+     */
+    public static function isArray($type){
+        return $type === self::VALUE_TYPE_ARRAY;
+    }
+    
+    /**
+     * Check if type is a function
+     * 
+     * @param integer $type
+     * @return boolean
+     */
+    public static function isFunction($type){
+        return $type === self::VALUE_TYPE_FUNCTION;
+    }
+    
+    /**
+     * Check if type is a method
+     * 
+     * @param integer $type
+     * @return boolean
+     */
+    public static function isMethod($type){
+        return $type === self::VALUE_TYPE_METHOD;
+    }
+    
+    /**
+     * Check if type is a static method
+     * 
+     * @param integer $type
+     * @return boolean
+     */
+    public static function isStaticMethod($type){
+        return $type === self::VALUE_TYPE_METHOD_STATIC;
+    }
 
     /**
      * Deep build argument array
