@@ -73,8 +73,8 @@ class GeneralUtility {
         $_className = (string) $className;
         $_property = (string) $property;
         if (!isset(self::$propertiesAnnontations[$_className][$_property])) {
-            if (class_exists($className) && property_exists($className, $property)) {
-                $reflectionProperty = new \ReflectionProperty($this->classname, $property);
+            if (class_exists($className) && property_exists($className, $_property)) {
+                $reflectionProperty = new \ReflectionProperty($_className, $_property);
                 $annotations = array();
                 preg_match_all('/@(' . $prefix . '(.*?))\n/s', $reflectionProperty->getDocComment(), $annotations);
                 self::$propertiesAnnontations[$_className][$_property] = $annotations[1];
