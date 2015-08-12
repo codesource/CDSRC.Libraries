@@ -33,7 +33,7 @@ class AnnotationValueParser {
      * 
      * @return mixed
      */
-    public static function getValueForEntity(array $config, $entity, $type = NULL) {
+    public static function getValueForEntity(array $config, $entity, $type = NULL, $forceCreation = TRUE) {
         switch ($config['type']) {
             case self::VALUE_TYPE_FUNCTION:
                 $value = call_user_func_array($config['function'], self::buildArguments($config['arguments'], $entity));
@@ -71,7 +71,7 @@ class AnnotationValueParser {
             case 'boolean':
                 return $value ? TRUE : FALSE;
             default:
-                if (class_exists($type)) {
+                if ($forceCreation && class_exists($type)) {
                     $class = new \ReflectionClass($type);
                     if (!$class->isInstantiable()) {
                         throw new InvalidValueException('Given class "' . $type . '" is not instantiable', 1439334996);
