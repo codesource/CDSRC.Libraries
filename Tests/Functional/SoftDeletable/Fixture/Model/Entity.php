@@ -17,7 +17,7 @@ namespace CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Model;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use CDSRC\Libraries\SoftDeletable\Domain\Model\TraitSoftDeletable as SoftDeletable;
+use CDSRC\Libraries\SoftDeletable\Domain\Model\SoftDeletableTrait as SoftDeletable;
 use TYPO3\Flow\Annotations as Flow;
 use Doctrine\ORM\Mapping as ORM;
 use CDSRC\Libraries\SoftDeletable\Annotations as CDSRC;
