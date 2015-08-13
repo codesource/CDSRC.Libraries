@@ -15,7 +15,7 @@ use CDSRC\Libraries\SoftDeletable\Annotations as CDSRC;
  * 
  * @CDSRC\SoftDeletable(deleteProperty="deletedAt", hardDeleteProperty="forceDelete")
  */
-trait TraitSoftDeletable {
+trait SoftDeletableTrait {
 
     /**
      * Store when the entity has been deleted
