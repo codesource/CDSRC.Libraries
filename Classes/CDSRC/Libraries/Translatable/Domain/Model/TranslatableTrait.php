@@ -52,7 +52,7 @@ trait TranslatableTrait {
      * @var boolean
      * @Flow\Transient
      */
-    protected $fallbackOnTranslation;
+    protected $fallbackOnTranslation = NULL;
 
     /**
      * @var array
@@ -333,7 +333,7 @@ trait TranslatableTrait {
     private function initializeForTranslation() {
         if (!$this->initializedForTranslation) {
             $this->translationsForTranslation = array();
-            $this->fallbackOnTranslation = TRUE;
+            $this->fallbackOnTranslation = $this->fallbackOnTranslation === NULL || $this->fallbackOnTranslation ? TRUE : FALSE;
 
             $specificClass = TRUE;
             if (strlen($this->translationClassName) === 0) {
