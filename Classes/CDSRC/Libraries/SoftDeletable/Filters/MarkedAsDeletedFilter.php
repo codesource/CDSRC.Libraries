@@ -36,18 +36,11 @@ class MarkedAsDeletedFilter extends SQLFilter {
     protected $entityManager;
 
     /**
-     * Store disabled class
+     * Disabled classname for filter
      * 
      * @var array
      */
     protected static $disabled = array();
-
-    /**
-     * Make sur that callback will not call again the enableForEntity or disableForEntity
-     * 
-     * @var boolean
-     */
-    protected static $nestingLock = FALSE;
 
     /**
      * {@inheritdoc}
@@ -80,69 +73,6 @@ class MarkedAsDeletedFilter extends SQLFilter {
             }
         }
         return self::$datas[$className] ? self::$datas[$className] : '';
-    }
-
-    /**
-     * Disable filter for given class
-     * If callback is given, entity will be disabled only for the call
-     * 
-     * @param mixed $class
-     * @param callable $callback
-     * @param array $parameters
-     */
-    public static function disableForEntity($class, $callback = NULL, array $parameters = array()) {
-        $result = TRUE;
-        $className = is_object($class) ? get_class($class) : $class;
-        if (is_callable($callback)) {
-            if (self::$nestingLock) {
-                self::$nestingLock = FALSE;
-                throw new InfiniteLoopException('Current callback has been call 2 times on disableForEntity method', 1439246602);
-            }
-            self::$nestingLock = TRUE;
-            if (isset(self::$disabled[$className])) {
-                $result = call_user_func_array($callback, $parameters);
-            } else {
-                self::$disabled[$className] = TRUE;
-                $result = call_user_func_array($callback, $parameters);
-                unset(self::$disabled[$className]);
-            }
-        } else {
-            self::$disabled[$className] = TRUE;
-        }
-        self::$nestingLock = FALSE;
-        return $result;
-    }
-
-    /**
-     * Enable filter for given class
-     * If callback is given, entity will be enabled only for the call
-     * 
-     * @param mixed $class
-     * @param callable $callback
-     * @param array $parameters
-     * 
-     */
-    public static function enableForEntity($class, $callback = NULL, array $parameters = array()) {
-        $className = is_object($class) ? get_class($class) : $class;
-        $result = TRUE;
-        if (is_callable($callback)) {
-            if (self::$nestingLock) {
-                self::$nestingLock = FALSE;
-                throw new InfiniteLoopException('Current callback has been call 2 times on enableForEntity method', 1439246603);
-            }
-            self::$nestingLock = TRUE;
-            if (isset(self::$disabled[$className])) {
-                unset(self::$disabled[$className]);
-                $result = call_user_func_array($callback, $parameters);
-                self::$disabled[$className] = TRUE;
-            } else {
-                $result = call_user_func_array($callback, $parameters);
-            }
-        } elseif (isset(self::$disabled[$className])) {
-            unset(self::$disabled[$className]);
-        }
-        self::$nestingLock = FALSE;
-        return $result;
     }
 
     /**
