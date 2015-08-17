@@ -3,6 +3,8 @@
     "type": "typo3-flow-package",
     "description": "FLOW3 package containing multiple usefull libraries",
     "require": {
+        "php": ">=5.5.0",
+
         "typo3/flow": "*"
     },
     "autoload": {
