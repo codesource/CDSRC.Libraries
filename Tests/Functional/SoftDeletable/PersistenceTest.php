@@ -77,7 +77,7 @@ class PersistenceTest extends \TYPO3\Flow\Tests\FunctionalTestCase {
         $this->entityRepository->remove($entity);
         $this->persistenceManager->persistAll();
         
-        $this->assertEquals(0, $this->entityRepository->disallowDeleted()->countAll());
+        $this->assertEquals(0, $this->entityRepository->countAll());
         $this->persistenceManager->clearState();
     }
     
@@ -113,7 +113,6 @@ class PersistenceTest extends \TYPO3\Flow\Tests\FunctionalTestCase {
         
         $this->entityRepository->remove($entity);
         $this->persistenceManager->persistAll();
-        
         $this->assertEquals(1, $this->entityRepository->allowDeleted()->countAll());
         $this->persistenceManager->clearState();
     }
