@@ -27,12 +27,6 @@ use CDSRC\Libraries\SoftDeletable\Filters\MarkedAsDeletedFilter as Filter;
  * @Flow\Scope("singleton")
  */
 abstract class AbstractRepository extends \TYPO3\Flow\Persistence\Repository {
-
-    /**
-     *
-     * @var boolean 
-     */
-    protected $preventNesting = FALSE;
     
     /**
      *
@@ -40,86 +34,67 @@ abstract class AbstractRepository extends \TYPO3\Flow\Persistence\Repository {
      */
     protected $enableDeleted = FALSE;
 
+	/**
+	 * @Flow\Inject
+	 * @var \Doctrine\Common\Persistence\ObjectManager
+	 */
+	protected $entityManager;
+    
     /**
-     *
-     * @var boolean 
+     * Constructor
+     * @param \TYPO3\Flow\Object\ObjectManagerInterface $objectManager
      */
-    protected $previousEnableDeleted = FALSE;
+    public function __construct(\TYPO3\Flow\Object\ObjectManagerInterface $objectManager) {
+        parent::__construct();
+        $this->entityManager = $objectManager->get('Doctrine\Common\Persistence\ObjectManager');
+    }
 
     /**
      * 
      * @return \AbstractRepository
      */
     public function allowDeleted() {
-        $this->previousEnableDeleted = $this->enableDeleted;
         $this->enableDeleted = TRUE;
         return $this;
     }
 
     /**
-     * 
-     * @return \AbstractRepository
-     */
-    public function disallowDeleted() {
-        $this->previousEnableDeleted = $this->enableDeleted;
-        $this->enableDeleted = FALSE;
-        return $this;
-    }
-
-    /**
      * {@inheritdoc}
-     */
-    public function __call($method, $arguments) {
-        return $this->wrapCall('__call', array($method, $arguments));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function countAll() {
-        return $this->wrapCall('countAll', array());
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function findAll() {
-        return $this->wrapCall('findAll', array());
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function findByIdentifier($identifier) {
-        return $this->wrapCall('findByIdentifier', array($identifier));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function createQuery() {
-        return $this->wrapCall('createQuery', array());
-    }
-    
-    /**
-     * Wrap call to enable or disable delete check
-     * 
-     * @param string $method
-     * @param array $arguments
-     * 
-     * @return mixed
-     */
-    protected function wrapCall($method, array $arguments){
-        if($this->preventNesting){
-            $result = call_user_func_array('parent::'.$method, $arguments);
-        }else{
-            $this->preventNesting = TRUE;
-            $filterMethod = $this->enableDeleted ? 'disableForEntity' : 'enableForEntity';
-            $this->enableDeleted = $this->previousEnableDeleted;
-            $result = Filter::$filterMethod($this->getEntityClassName(), array($this, $method), $arguments);
+	 */
+	public function findAll() {
+        if($this->enableDeleted){
+            $this->entityManager->getFilters()->disable('cdsrc.libraries.softdeletable.filter');
         }
-        $this->preventNesting = FALSE;
+        $result = parent::findAll();
+        $this->enableDeleted = FALSE;
+        $this->entityManager->getFilters()->enable('cdsrc.libraries.softdeletable.filter');
         return $result;
-    }
+	}
 
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function countAll() {
+        if($this->enableDeleted){
+            $this->entityManager->getFilters()->disable('cdsrc.libraries.softdeletable.filter');
+        }
+        $result = parent::countAll();
+        $this->enableDeleted = FALSE;
+        $this->entityManager->getFilters()->enable('cdsrc.libraries.softdeletable.filter');
+        return $result;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function __call($method, $arguments) {
+        if($this->enableDeleted){
+            $this->entityManager->getFilters()->disable('cdsrc.libraries.softdeletable.filter');
+        }
+        $result = parent::__call($method, $arguments);
+        $this->enableDeleted = FALSE;
+        $this->entityManager->getFilters()->enable('cdsrc.libraries.softdeletable.filter');
+        return $result;
+	}
 }
