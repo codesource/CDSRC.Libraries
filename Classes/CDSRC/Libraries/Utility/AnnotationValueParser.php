@@ -55,7 +55,7 @@ class AnnotationValueParser {
                 break;
             case self::VALUE_TYPE_METHOD:
                 $class = new \ReflectionClass($config['object']);
-                $obj = $class->newInstanceArgs(count($config['parameters']) > 0 ? $config['parameters'] : NULL);
+                $obj = $class->newInstanceArgs(is_array($config['parameters']) && count($config['parameters']) > 0 ? $config['parameters'] : array());
                 $value = call_user_func_array(array($obj, $config['method']), self::buildArgumentsFor($config['arguments'], $for));
                 break;
             case self::VALUE_TYPE_METHOD_STATIC:
