@@ -111,7 +111,7 @@ abstract class AbstractRepository extends \TYPO3\Flow\Persistence\Repository {
                         $this->deleteAnnotation = $annotation;
                     }
                 }
-            }
+            } 
             if($this->deleteAnnotation !== FALSE){
                 if($this->deleteAnnotation->timeAware){
                     $query = $query->matching($query->logicalOr(
