@@ -33,12 +33,23 @@ abstract class AbstractRepository extends \TYPO3\Flow\Persistence\Repository {
      * @var boolean 
      */
     protected $enableDeleted = FALSE;
+    
+    /**
+     * @var \CDSRC\Libraries\SoftDeletable\Annotations\SoftDeletable|boolean
+     */
+    protected $deleteAnnotation = NULL;
 
 	/**
 	 * @Flow\Inject
 	 * @var \Doctrine\Common\Persistence\ObjectManager
 	 */
 	protected $entityManager;
+
+	/**
+	 * @Flow\Inject
+	 * @var \TYPO3\Flow\Reflection\ReflectionService
+	 */
+	protected $reflectionService;
     
     /**
      * Constructor
@@ -83,6 +94,36 @@ abstract class AbstractRepository extends \TYPO3\Flow\Persistence\Repository {
         $this->enableDeleted = FALSE;
         $this->entityManager->getFilters()->enable('cdsrc.libraries.softdeletable.filter');
         return $result;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function createQuery() {
+        $query = parent::createQuery();
+        if(!$this->enableDeleted){
+            if($this->deleteAnnotation === NULL){
+                $this->deleteAnnotation = FALSE;
+                $annotation = $this->reflectionService->getClassAnnotation($this->entityClassName, \CDSRC\Libraries\SoftDeletable\Annotations\SoftDeletable::class);
+                if ($annotation !== NULL) {
+                    $existingProperties = $this->reflectionService->getClassPropertyNames($this->entityClassName);
+                    if (in_array($annotation->deleteProperty, $existingProperties)) {
+                        $this->deleteAnnotation = $annotation;
+                    }
+                }
+            }
+            if($this->deleteAnnotation !== FALSE){
+                if($this->deleteAnnotation->timeAware){
+                    $query = $query->matching($query->logicalOr(
+                            $query->equals($this->deleteAnnotation->deleteProperty, NULL),
+                            $query->lessThanOrEqual($this->deleteAnnotation->deleteProperty, new \DateTime())
+                            ));
+                }else{
+                    $query = $query->matching($query->equals($this->deleteAnnotation->deleteProperty, NULL));
+                }
+            }
+        }
+        return $query;
 	}
 
 	/**
