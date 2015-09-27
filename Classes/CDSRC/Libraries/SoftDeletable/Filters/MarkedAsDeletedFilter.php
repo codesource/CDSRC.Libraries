@@ -52,7 +52,8 @@ class MarkedAsDeletedFilter extends SQLFilter {
         } elseif (array_key_exists($targetEntity->rootEntityName, self::$disabled)) {
             return '';
         }
-        if (!isset(self::$datas[$className])) {
+        $dataKey = $className . '|' . $targetTableAlias;
+        if (!isset(self::$datas[$dataKey])) {
             $annotation = $this->getReflectionService()->getClassAnnotation($className, SoftDeletable::class);
             if ($annotation !== NULL) {
                 $existingProperties = $this->getReflectionService()->getClassPropertyNames($className);
@@ -67,12 +68,12 @@ class MarkedAsDeletedFilter extends SQLFilter {
                 if ($annotation->timeAware) {
                     $addCondSql .= ' OR ' . $targetTableAlias . '.' . $column . ' > ' . $conn->quote(date('Y-m-d H:i:s'));
                 }
-                self::$datas[$className] = $addCondSql;
+                self::$datas[$dataKey] = $addCondSql;
             } else {
-                self::$datas[$className] = FALSE;
+                self::$datas[$dataKey] = FALSE;
             }
         }
-        return self::$datas[$className] ? self::$datas[$className] : '';
+        return self::$datas[$dataKey] ? self::$datas[$dataKey] : '';
     }
 
     /**
