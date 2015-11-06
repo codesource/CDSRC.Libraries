@@ -2,33 +2,63 @@
 
 namespace CDSRC\Libraries\Translatable\Domain\Model;
 
-/* *
- * This script belongs to the TYPO3 Flow package "CDSRC.Libraries".       *
- *                                                                        *
- *                                                                        */
+/*******************************************************************************
+ *
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ******************************************************************************/
 
-use TYPO3\Flow\Annotations as Flow;
-use Doctrine\ORM\Mapping as ORM;
 use CDSRC\Libraries\Translatable\Annotations as CDSRC;
-use CDSRC\Libraries\Utility\GeneralUtility;
+use CDSRC\Libraries\Translatable\Annotations\Locked;
+use CDSRC\Libraries\Translatable\Annotations\Translatable;
+use Doctrine\ORM\Mapping as ORM;
+use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\I18n\Locale;
+use TYPO3\Flow\Object\Exception\InvalidClassException;
+use TYPO3\Flow\Property\Exception\InvalidPropertyException;
 
 /**
- * 
+ * Abstract class for translation entities
+ *
+ * @Flow\Entity
+ * @ORM\InheritanceType("JOINED")
+ *
+ * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-abstract class AbstractTranslation {
+abstract class AbstractTranslation
+{
+
+    /**
+     * Store reflexion for translatable properties
+     *
+     * @var array
+     * @Flow\Transient
+     * @CDSRC\Locked
+     */
+    static protected $propertiesCheckCache = array();
 
     /**
      * @var \TYPO3\Flow\Persistence\PersistenceManagerInterface
      * @Flow\Inject
      * @Flow\Transient
+     * @CDSRC\Locked
      */
     protected $persistenceManager;
-
-    /**
-     * @var string
-     * @Flow\Transient
-     */
-    const RELATED_TRAIT = 'CDSRC\\Libraries\\Translatable\\Domain\\Model\\TranslatableTrait';
 
     /**
      * @var \TYPO3\Flow\Reflection\ReflectionService
@@ -39,170 +69,202 @@ abstract class AbstractTranslation {
     protected $reflectionService;
 
     /**
-     * Store reflexion for translatable properties
-     * 
-     * @var array 
+     * Class name of parent
+     *
+     * @var string
      * @Flow\Transient
      * @CDSRC\Locked
      */
-    static protected $propertiesCheckCache = array();
+    protected $parentClassName;
 
     /**
-     * Reference to object identifiant
-     * 
      * @var string
+     * @Flow\Validate(type="NotEmpty")
      * @CDSRC\Locked
      */
-    protected $referenceToObject;
+    protected $i18nLocale;
+
 
     /**
-     * Reference to object class name
-     * 
-     * @var string
+     * @var \TYPO3\Flow\I18n\Locale
+     * @Flow\Transient
      * @CDSRC\Locked
      */
-    protected $classnameOfObject;
+    protected $i18nLocaleObject;
 
     /**
-     * Locale of translation
-     * 
-     * @var string
+     * @var \CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable
+     * @ORM\ManyToOne(inversedBy="translations")
+     * @Flow\Validate(type="NotEmpty")
      * @CDSRC\Locked
      */
-    protected $currentLocale;
+    protected $i18nParent;
 
     /**
      * Constructor
-     * 
-     * @param string $classname
-     * @param string $locale
+     *
+     * @param \TYPO3\Flow\I18n\Locale|string $i18nLocale
+     * @param string $parentClassName
      */
-    public function __construct($classname, $locale) {
-        $this->classnameOfObject = (string) $classname;
-        $this->currentLocale = (string) $locale;
-        if (!GeneralUtility::useTrait($this->classnameOfObject, self::RELATED_TRAIT)) {
-            throw new \TYPO3\Flow\Object\Exception\InvalidClassException('Given class ' . $this->classnameOfObject . ' doesn\'t use the trait ' . self::RELATED_TRAIT, 1428262482);
+    public function __construct($i18nLocale, $parentClassName = '')
+    {
+        $this->setI18nLocale($i18nLocale);
+        $this->parentClassName = $parentClassName;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getI18nLocale()
+    {
+        if ($this->i18nLocaleObject === null && strlen($this->i18nLocale) > 0) {
+            $this->i18nLocaleObject = new Locale($this->i18nLocale);
         }
+
+        return $this->i18nLocaleObject;
     }
-    
+
     /**
-     * Clone object and set the new reference
-     * 
-     * @param mixed $reference
-     * @return CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation
+     * {@inheritdoc}
      */
-    public function cloneObject($reference){
-        $clone = clone $this;
-        return $clone->setReference($reference);
+    public function setI18nLocale($locale)
+    {
+        if (is_string($locale) && strlen($locale) > 0) {
+            $locale = new Locale($locale);
+        }
+        if (is_object($locale) && $locale instanceof Locale) {
+            $this->i18nLocaleObject = $locale;
+            $this->i18nLocale = (string)$this->i18nLocaleObject;
+        }
+
+        return $this;
     }
-    
+
     /**
-     * Set translation reference
-     * 
-     * @param mixed $reference
-     * @return CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation
+     * {@inheritdoc}
      */
-    public function setReference($reference){
-        $this->referenceToObject = is_object($reference) ? $this->persistenceManager->getIdentifierByObject($reference) : (string) $reference;
+    public function getI18nParent()
+    {
+        return $this->i18nParent;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setI18nParent(TranslatableInterface $parent, $bidirectional = true)
+    {
+        $this->i18nParent = $parent;
+        $this->parentClassName = get_class($this->i18nParent);
+        if ($bidirectional) {
+            $this->i18nParent->addTranslation($this, false);
+        }
+
         return $this;
     }
 
     /**
      * Property's getter and setter
-     * @param type $method
-     * @param type $arguments
+     *
+     * @param string $method
+     * @param array $arguments
+     *
+     * @return mixed|null
      */
-    public function __call($method, $arguments) {
-        $match = NULL;
+    public function __call($method, $arguments)
+    {
+        $match = null;
         if (preg_match('/^get([A-Z][a-z0-9A-Z]*)$/', $method, $match)) {
             $property = lcfirst($match[1]);
             $annotation = $this->reflectionService->getPropertyAnnotation(get_class($this), $property, 'CDSRC\\Libraries\\Translatable\\Annotations\\Locked');
-            if (!$annotation instanceof \CDSRC\Libraries\Translatable\Annotations\Locked) {
+            if (!$annotation instanceof Locked) {
                 return $this->get($property);
             }
         }
         if (preg_match('/^set([A-Z][a-z0-9A-Z]*)$/', $method, $match)) {
             $property = lcfirst($match[1]);
             $annotation = $this->reflectionService->getPropertyAnnotation(get_class($this), $property, 'CDSRC\\Libraries\\Translatable\\Annotations\\Locked');
-            if (!$annotation instanceof \CDSRC\Libraries\Translatable\Annotations\Locked) {
+            if (!$annotation instanceof Locked) {
                 return $this->set($property, $arguments[0]);
             }
         }
+        return null;
     }
 
     /**
-     * Return classname of object
-     * 
-     * @return string
+     * Property getter
+     *
+     * @param string $property
      */
-    public function getClassnameOfObject() {
-        return $this->classnameOfObject;
-    }
+    protected function get($property)
+    {
+        $_property = $this->sanitizeProperty($property);
 
-    /**
-     * Return current translation locale
-     * 
-     * @return string
-     */
-    public function getCurrentLocale() {
-        return $this->currentLocale;
+        return $this->$_property;
     }
 
     /**
      * Sanitize property to make sure that it's translatable
-     * 
+     *
      * @param string $property
+     *
      * @return string
-     * @throws \TYPO3\Flow\Property\Exception\InvalidPropertyException
+     * @throws InvalidClassException
+     * @throws InvalidPropertyException
      */
-    protected function sanitizeProperty($property) {
+    protected function sanitizeProperty($property)
+    {
         $_property = lcfirst($property);
-        if (isset(self::$propertiesCheckCache[$this->classnameOfObject]) && in_array($_property, self::$propertiesCheckCache[$this->classnameOfObject])) {
-            return $_property;
+        if ($this->parentClassName === null && !empty($this->i18nParent)) {
+            $this->parentClassName = get_class($this->i18nParent);
+        }
+        if (strlen($this->parentClassName) > 0) {
+            if (isset(self::$propertiesCheckCache[$this->parentClassName]) && in_array($_property, self::$propertiesCheckCache[$this->parentClassName])) {
+                return $_property;
+            } else {
+                if (!property_exists($this->parentClassName, $_property)) {
+                    throw new InvalidPropertyException($_property . ' do not exists in ' . $this->parentClassName, 1428243278);
+                }
+                $annotation = $this->reflectionService->getPropertyAnnotation($this->parentClassName, $_property, 'CDSRC\\Libraries\\Translatable\\Annotations\\Translatable');
+                if (!$annotation instanceof Translatable) {
+                    throw new InvalidPropertyException($_property . ' is not translatable.', 1428243280);
+                }
+                if (!$this->propertyExists($_property)) {
+                    throw new InvalidPropertyException($_property . ' do not exists in ' . get_class($this), 1428243279);
+                }
+                self::$propertiesCheckCache[$this->parentClassName][] = $_property;
+
+                return $_property;
+            }
         } else {
-            if (!property_exists($this->classnameOfObject, $_property)) {
-                throw new \TYPO3\Flow\Property\Exception\InvalidPropertyException($_property . ' do not exists in ' . $this->classnameOfObject, 1428243278);
-            }
-            $annotation = $this->reflectionService->getPropertyAnnotation($this->classnameOfObject, $_property, 'CDSRC\\Libraries\\Translatable\\Annotations\\Translatable');
-            if (!$annotation instanceof \CDSRC\Libraries\Translatable\Annotations\Translatable) {
-                throw new \TYPO3\Flow\Property\Exception\InvalidPropertyException($_property . ' is not translatable.', 1428243280);
-            }
-            if (!$this->propertyExists($_property)) {
-                throw new \TYPO3\Flow\Property\Exception\InvalidPropertyException($_property . ' do not exists in ' . get_class($this), 1428243279);
-            }
-            self::$propertiesCheckCache[$this->classnameOfObject][] = $_property;
-            return $_property;
+            throw new InvalidClassException('Parent class name has not been set.', 1428243279);
         }
     }
 
     /**
      * Check if current object can handle property
-     * 
+     *
      * @param string $property
+     *
      * @return boolean
      */
-    protected function propertyExists($property) {
+    protected function propertyExists($property)
+    {
         return property_exists($this, $property);
     }
 
     /**
-     * Property getter
-     * 
-     * @param string $property
-     */
-    protected function get($property) {
-        $_property = $this->sanitizeProperty($property);
-        return $this->$_property;
-    }
-
-    /**
      * Property setter
+     *
      * @param string $property
      * @param mixed $value
+     *
+     * @return $this
      */
-    protected function set($property, $value) {
+    protected function set($property, $value)
+    {
         $_property = $this->sanitizeProperty($property);
         $this->$_property = $value;
+        return $this;
     }
 
 }

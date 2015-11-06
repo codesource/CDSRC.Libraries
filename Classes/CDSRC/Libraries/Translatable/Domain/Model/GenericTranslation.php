@@ -2,105 +2,113 @@
 
 namespace CDSRC\Libraries\Translatable\Domain\Model;
 
-/* *
- * This script belongs to the TYPO3 Flow package "CDSRC.Libraries".       *
- *                                                                        *
- *                                                                        */
+/*******************************************************************************
+ *
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ******************************************************************************/
 
-use TYPO3\Flow\Annotations as Flow;
-use Doctrine\ORM\Mapping as ORM;
 use CDSRC\Libraries\Translatable\Annotations as CDSRC;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\Mapping as ORM;
+use TYPO3\Flow\Annotations as Flow;
 
 /**
  * @Flow\Entity
- * @ORM\Table(indexes={
- *  @ORM\Index(name="CDSRC_Libraries_Translatable_Reference", columns={"referencetoobject", "classnameofobject"}),
- *  @ORM\Index(name="CDSRC_Libraries_Translatable_Locale", columns={"currentlocale"})
- * })
+ *
+ * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-class GenericTranslation extends AbstractTranslation {
+class GenericTranslation extends AbstractTranslation implements TranslationInterface
+{
 
-	/**
-	 * @var \Doctrine\Common\Collections\Collection<\CDSRC\Libraries\Translatable\Domain\Model\GenericTranslationField>
-	 * @ORM\OneToMany(mappedBy="genericTranslation", cascade={"all"}, orphanRemoval=TRUE)
+    /**
+     * @var \Doctrine\Common\Collections\Collection<\CDSRC\Libraries\Translatable\Domain\Model\GenericTranslationField>
+     * @ORM\OneToMany(mappedBy="translation", cascade={"all"}, orphanRemoval=TRUE)
      * @Flow\Lazy
      * @CDSRC\Locked
-	 */
+     */
     public $fields;
-    
+
     /**
      * Constructor
-     * 
-     * @param string $classname
-     * @param string $locale
+     *
+     * @param \TYPO3\Flow\I18n\Locale|string $i18nLocale
+     * @param string $parentClassName
      */
-    public function __construct($classname, $locale) {
-        parent::__construct($classname, $locale);
-        $this->fields = new \Doctrine\Common\Collections\ArrayCollection();
+    public function __construct($i18nLocale, $parentClassName = '')
+    {
+        parent::__construct($i18nLocale, $parentClassName);
+        $this->fields = new ArrayCollection();
     }
-    
-    /**
-     * Clone object and set the new reference
-     * 
-     * @param mixed $reference
-     * @return CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation
-     */
-    public function cloneObject($reference){
-        $clone = new GenericTranslation($this->getClassnameOfObject(), $this->getCurrentLocale());
-        $clone->setReference($reference);
-        foreach($this->fields as $field){
-            $clone->set($field->getProperty(), $field->getValue());
-        }
-        return $clone;
-    }
-    
-    /**
-     * Check if current object can handle property
-     * Property should always exists, if not it will be created at setter
-     * 
-     * @param string $property
-     * @return boolean
-     */
-    protected function propertyExists($property){
-        return TRUE;
-    }
-    
+
     /**
      * Property getter
-     * 
+     *
      * @param string $property
+     *
+     * @return mixed|null
      */
-    protected function get($property){
+    protected function get($property)
+    {
         $_property = $this->sanitizeProperty($property);
-        foreach($this->fields as $field){
-            if($field->getProperty() === $_property){
+        foreach ($this->fields as $field) {
+            if ($field->getProperty() === $_property) {
                 return $field->getValue();
             }
         }
-        return NULL;
+
+        return null;
     }
-    
+
     /**
      * Property setter
-     * 
+     *
      * @param string $property
      * @param mixed $value
+     *
      * @return \CDSRC\Libraries\Translatable\Domain\Model\GenericTranslation
      */
-    protected function set($property, $value){
+    protected function set($property, $value)
+    {
         $_property = $this->sanitizeProperty($property);
-        $field = NULL;
-        foreach($this->fields as $f){
-            if($f->getProperty() === $property){
+        $field = null;
+        foreach ($this->fields as $f) {
+            if ($f->getProperty() === $property) {
                 $field = $f;
                 break;
             }
         }
-        if($field === NULL){
+        if ($field === null) {
             $field = new GenericTranslationField($this, $_property);
             $this->fields->add($field);
         }
         $field->setValue($value);
+
         return $this;
+    }
+
+    /**
+     * Get parent class name
+     *
+     * @return string
+     */
+    protected function getParentClassName()
+    {
+        return $this->parentClassName;
     }
 }
