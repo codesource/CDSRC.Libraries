@@ -2,18 +2,36 @@
 
 namespace CDSRC\Libraries\Utility;
 
-/* *
- * This script belongs to the TYPO3 Flow package "CDSRC.Libraries".       *
- *                                                                        *
- *                                                                        */
+/*******************************************************************************
+ *
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ******************************************************************************/
 
 use CDSRC\Libraries\Exceptions\InvalidValueException;
 
 /**
- * Marks a class as soft deletable
+ * Parse value of an annotation
  *
+ * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-class AnnotationValueParser {
+class AnnotationValueParser
+{
 
     const VALUE_TYPE_LITERAL = 0;
     const VALUE_TYPE_FUNCTION = 1;
@@ -26,29 +44,32 @@ class AnnotationValueParser {
 
     /**
      * Generate value for an entity
-     * 
+     *
      * @param array $config
      * @param object $entity
      * @param string $type
      * @param boolean $forceCreation
-     * 
+     *
      * @return mixed
      */
-    public static function getValueForEntity(array $config, $entity, $type = NULL, $forceCreation = TRUE) {
+    public static function getValueForEntity(array $config, $entity, $type = null, $forceCreation = true)
+    {
         return self::getValueFor($config, array('entity' => $entity), $type, $forceCreation);
     }
-    
+
     /**
      * Generate value with some replacements
-     * 
+     *
      * @param array $config
      * @param array $for
      * @param string $type
      * @param boolean $forceCreation
-     * 
+     *
      * @return mixed
+     * @throws \CDSRC\Libraries\Exceptions\InvalidValueException
      */
-    public static function getValueFor(array $config, array $for = array(), $type = NULL, $forceCreation = TRUE){
+    public static function getValueFor(array $config, array $for = array(), $type = null, $forceCreation = true)
+    {
         switch ($config['type']) {
             case self::VALUE_TYPE_FUNCTION:
                 $value = call_user_func_array($config['function'], self::buildArgumentsFor($config['arguments'], $for));
@@ -63,7 +84,7 @@ class AnnotationValueParser {
                 break;
             case self::VALUE_TYPE_ARRAY:
                 $value = array();
-                foreach($config['content'] as $subConfig){
+                foreach ($config['content'] as $subConfig) {
                     $value[] = self::getValueFor($subConfig, $for, $type);
                 }
                 break;
@@ -80,11 +101,11 @@ class AnnotationValueParser {
             case 'float':
                 return floatval($value);
             case 'array':
-                return (array) $value;
+                return (array)$value;
             case 'string':
-                return (string) $value;
+                return (string)$value;
             case 'boolean':
-                return $value ? TRUE : FALSE;
+                return $value ? true : false;
             default:
                 if ($forceCreation && class_exists($type) && (!is_object($value) || !is_a($value, $type))) {
                     $class = new \ReflectionClass($type);
@@ -93,26 +114,54 @@ class AnnotationValueParser {
                     }
                     $constructor = $class->getConstructor();
                     if ($constructor) {
-                        if($constructor->getNumberOfRequiredParameters() > 1){
-                            throw new InvalidValueException('Given class "' . $type . '" requires more than 1 parameter to be instancied', 1439334997);
+                        if ($constructor->getNumberOfRequiredParameters() > 1) {
+                            throw new InvalidValueException('Given class "' . $type . '" requires more than 1 parameter to be instanced', 1439334997);
                         }
+
                         return $class->newInstanceArgs(array($value));
-                    }else{
+                    } else {
                         return $class->newInstanceArgs();
                     }
                 }
+
                 return $value;
         }
     }
 
     /**
-     * Parse a value data
-     * 
-     * @param string $value
-     * 
+     * Deep build argument array
+     *
+     * @param array $arguments
+     * @param array $for
+     *
      * @return array
      */
-    public static function parseValue($value) {
+    protected static function buildArgumentsFor(array $arguments, array $for)
+    {
+        $_args = array();
+        foreach ($arguments as $argument) {
+            if (is_array($argument)) {
+                $_args[] = self::getValueFor($argument, $for);
+            } elseif (preg_match('/^\{.*\}$/', $argument) && strlen($key = substr($argument, 1, -1)) > 0 && isset($for[$key])) {
+                $_args[] = &$for[$key];
+            } else {
+                $_args[] = $argument;
+            }
+        }
+
+        return $_args;
+    }
+
+    /**
+     * Parse a value data
+     *
+     * @param string $value
+     *
+     * @return array
+     * @throws \CDSRC\Libraries\Exceptions\InvalidValueException
+     */
+    public static function parseValue($value)
+    {
         $_value = trim($value);
         if (strlen($_value) > 0) {
             $matches = array();
@@ -123,8 +172,9 @@ class AnnotationValueParser {
                 );
             } elseif (preg_match('/^' . self::REGEX_FUNCTION . '$/', $_value, $matches)) {
                 if (!function_exists($matches[1])) {
-                    throw new InvalidValueException('Given function "' . $matches[1] . '" doesn\'t exists', 1439255361);
+                    throw new InvalidValueException('Given function "' . $matches[1] . '" does\'nt exists', 1439255361);
                 }
+
                 return array(
                     'type' => self::VALUE_TYPE_FUNCTION,
                     'function' => $matches[1],
@@ -132,14 +182,14 @@ class AnnotationValueParser {
                 );
             } elseif (preg_match('/^' . self::REGEX_METHOD . '$/', $_value, $matches)) {
                 if (!class_exists($matches[1])) {
-                    throw new InvalidValueException('Given class "' . $matches[1] . '" doesn\'t exists', 1439255371);
+                    throw new InvalidValueException('Given class "' . $matches[1] . '" does\'nt exists', 1439255371);
                 }
                 $class = new \ReflectionClass($matches[1]);
                 if ($class->isAbstract()) {
                     throw new InvalidValueException('Given class "' . $matches[1] . '" is abstract', 1439255382);
                 }
                 if (!$class->hasMethod($matches[7])) {
-                    throw new InvalidValueException('Given method "' . $matches[7] . '" doesn\'t exists', 1439255381);
+                    throw new InvalidValueException('Given method "' . $matches[7] . '" does\'nt exists', 1439255381);
                 }
                 $method = $class->getMethod($matches[7]);
                 if (!$method->isPublic()) {
@@ -156,9 +206,10 @@ class AnnotationValueParser {
                     $constructor = $class->getConstructor();
                     $numberOfRequiredParameters = $constructor ? $constructor->getNumberOfRequiredParameters() : 0;
                     if ($numberOfRequiredParameters > count($parameters)) {
-                        throw new InvalidValueException('Given class "' . $matches[1] . '" requires ' . $numberOfRequiredParameters . ' parameter' . ($numberOfRequiredParameters > 1 ? 's' : '') . ' to be instancied', 1439255395);
+                        throw new InvalidValueException('Given class "' . $matches[1] . '" requires ' . $numberOfRequiredParameters . ' parameter' . ($numberOfRequiredParameters > 1 ? 's' : '') . ' to be instanced', 1439255395);
                     }
                 }
+
                 return array(
                     'type' => $matches[3] === '::' ? self::VALUE_TYPE_METHOD_STATIC : self::VALUE_TYPE_METHOD,
                     'object' => $matches[1],
@@ -174,138 +225,95 @@ class AnnotationValueParser {
             'content' => $value
         );
     }
-    
-    /**
-     * Check if type is a function or a method
-     * 
-     * @param integer $type
-     * @return boolean
-     */
-    public static function isFunctionOrMethod($type){
-        return in_array($type, array(self::VALUE_TYPE_FUNCTION, self::VALUE_TYPE_METHOD, self::VALUE_TYPE_METHOD_STATIC));
-    }
-    
-    /**
-     * Check if type is a literal value
-     * 
-     * @param integer $type
-     * @return boolean
-     */
-    public static function isLiteral($type){
-        return $type === self::VALUE_TYPE_LITERAL;
-    }
-    
-    /**
-     * Check if type is an array
-     * 
-     * @param integer $type
-     * @return boolean
-     */
-    public static function isArray($type){
-        return $type === self::VALUE_TYPE_ARRAY;
-    }
-    
-    /**
-     * Check if type is a function
-     * 
-     * @param integer $type
-     * @return boolean
-     */
-    public static function isFunction($type){
-        return $type === self::VALUE_TYPE_FUNCTION;
-    }
-    
-    /**
-     * Check if type is a method
-     * 
-     * @param integer $type
-     * @return boolean
-     */
-    public static function isMethod($type){
-        return $type === self::VALUE_TYPE_METHOD;
-    }
-    
-    /**
-     * Check if type is a static method
-     * 
-     * @param integer $type
-     * @return boolean
-     */
-    public static function isStaticMethod($type){
-        return $type === self::VALUE_TYPE_METHOD_STATIC;
-    }
 
     /**
-     * Deep build argument array
-     * 
-     * @param array $arguments
-     * @param array $for
-     * 
+     * Parse array elements as string
+     *
+     * @param string $value
+     *
      * @return array
+     * @throws \CDSRC\Libraries\Exceptions\InvalidValueException
      */
-    protected static function buildArgumentsFor(array $arguments, array $for) {
-        $_args = array();
-        foreach ($arguments as $argument) {
-            if (is_array($argument)) {
-                $_args[] = self::getValueFor($argument, $for);
-            } elseif(preg_match('/^\{.*\}$/', $argument) && strlen($key = substr($argument, 1, -1)) > 0 && isset($for[$key])) {
-                $_args[] = & $for[$key];
-            }else{
-                $_args[] = $argument;
+    protected static function parseArray($value)
+    {
+        $array = array();
+        if (is_string($value)) {
+            $matches = array();
+            preg_match_all('/('
+                . '(?:(?:"[^"]*?"|\'[^\']*?\'|[0-9]+)\s*=>\s*)?' // KEY
+                . '(?:'
+                . '"(?:(?:[^"]|\\")*?)"' . '\s*,\s*|'   // DOUBLE QUOTE
+                . '\'(?:(?:[^\']|\\\')*?)\'' . '\s*,\s*|'   // SINGLE QUOTE
+                . '(?:[a-zA-Z0-9][a-zA-Z0-9\._]*)' . '\s*,\s*|' // NUMBERS
+                . '(?:(?:[a-zA-Z0-9][a-zA-Z0-9\._\->:]*)\((?:(?:.*?)\)\s*,\s*)*?(?:(?:[^\)]*)\)\s*,\s*)+?)+?' // FUNCTIONS
+                . ')'
+                . ')+?/', rtrim(trim($value), ',') . ',', $matches);
+            foreach ($matches[1] as $match) {
+                $match = rtrim(trim($match), ',');
+                $parts = explode('=>', $match);
+                if (count($parts) > 2) {
+                    throw new InvalidValueException('Cannot parse "key" => "value" from array', 1439329941);
+                }
+                $value = self::parseValue(preg_replace('/^[\'"]?(.*?)[\'"]?$/', '$1', trim(array_pop($parts))));
+                if (isset($parts[0])) {
+                    $array[preg_replace('/^[\'"]?(.*?)[\'"]?$/', '$1', trim($parts[0]))] = $value;
+                } else {
+                    $array[] = $value;
+                }
             }
         }
-        return $_args;
+
+        return $array;
     }
 
     /**
      * Parse arguments in an array
-     * 
+     *
      * @param string $value
+     *
      * @return array
      */
-    protected static function parseArguments($value) {
-        if (strlen(trim($value)) === 0) {
+    protected static function parseArguments($value)
+    {
+        if (!is_string($value) || strlen(trim($value)) === 0) {
             return array();
         }
-        $open = FALSE;
-        $function = FALSE;
-        $previous = '';
-        $escape = FALSE;
+        $open = false;
+        $function = false;
+        $escape = false;
         $arguments = array();
-        $argument = NULL;
+        $argument = null;
         for ($i = 0, $ni = strlen($value); $i < $ni; $i++) {
             $c = $value{$i};
-            $argument = $argument === NULL ? '' : $argument;
+            $argument = $argument === null ? '' : $argument;
             if ($open) {
                 if ($escape) {
-                    $escape = FALSE;
+                    $escape = false;
                     $argument .= $c;
                 } else {
                     if ($c === $open) {
-                        $open = FALSE;
+                        $open = false;
                     } elseif ($c === '\\') {
-                        $escape = TRUE;
+                        $escape = true;
                     } else {
                         if (substr($open, 0, 4) === 'fct:') {
-                            $oindex = intval(substr($open, 4));
+                            $oIndex = intval(substr($open, 4));
                             if ($c === '(') {
-                                $open = 'fct:' . ($oindex + 1);
-                                $function = TRUE;
+                                $open = 'fct:' . ($oIndex + 1);
+                                $function = true;
                             } elseif ($c === ')') {
-                                $open = 'fct:' . ($oindex - 1);
+                                $open = 'fct:' . ($oIndex - 1);
                             } elseif ($c === ',') {
                                 if (strlen($open) === 4) {
-                                    $open = FALSE;
-                                    $previous = $c;
+                                    $open = false;
                                     $arguments[] = trim($argument);
-                                    $argument = NULL;
+                                    $argument = null;
                                     continue;
-                                } elseif ($oindex === 0) {
-                                    $open = FALSE;
-                                    $previous = $c;
+                                } elseif ($oIndex === 0) {
+                                    $open = false;
                                     $arguments[] = self::parseValue($argument);
-                                    $argument = NULL;
-                                    $function = FALSE;
+                                    $argument = null;
+                                    $function = false;
                                     continue;
                                 }
                             } elseif (strlen(trim($c)) === 0) {
@@ -318,7 +326,7 @@ class AnnotationValueParser {
                 }
             } elseif ($c === ',') {
                 $arguments[] = $argument;
-                $argument = NULL;
+                $argument = null;
             } elseif ($c === '"' || $c === "'") {
                 $open = $c;
             } elseif (strlen(trim($c)) > 0) {
@@ -329,9 +337,8 @@ class AnnotationValueParser {
             } else {
                 continue;
             }
-            $previous = $c;
         }
-        if ($argument !== NULL) {
+        if ($argument !== null) {
             if (substr($open, 0, 4) === 'fct:') {
                 if ($function) {
                     $arguments[] = self::parseValue($argument);
@@ -342,42 +349,80 @@ class AnnotationValueParser {
                 $arguments[] = $argument;
             }
         }
+
         return $arguments;
     }
 
     /**
-     * Parse array elements as string
-     * 
-     * @param string $value
-     * 
-     * @return array
+     * Check if type is a function or a method
+     *
+     * @param integer $type
+     *
+     * @return boolean
      */
-    protected static function parseArray($value) {
-        $matches = array();
-        $array = array();
-        preg_match_all('/('
-                . '(?:(?:"[^"]*?"|\'[^\']*?\'|[0-9]+)\s*=>\s*)?' // KEY
-                . '(?:'
-                . '"(?:(?:[^"]|\\")*?)"' . '\s*,\s*|'   // DOUBLE QUOTE
-                . '\'(?:(?:[^\']|\\\')*?)\'' . '\s*,\s*|'   // SINGLE QUOTE
-                . '(?:[a-zA-Z0-9][a-zA-Z0-9\._]*)' . '\s*,\s*|' // NUMBERS
-                . '(?:(?:[a-zA-Z0-9][a-zA-Z0-9\._\->:]*)\((?:(?:.*?)\)\s*,\s*)*?(?:(?:[^\)]*)\)\s*,\s*)+?)+?' // FUNCTIONS
-                . ')'
-                . ')+?/', rtrim(trim($value), ',') . ',', $matches);
-        foreach ($matches[1] as $match) {
-            $match = rtrim(trim($match), ',');
-            $parts = explode('=>', $match);
-            if (count($parts) > 2) {
-                throw new InvalidValueException('Cannot parse "key" => "value" from array', 1439329941);
-            }
-            $value = self::parseValue(preg_replace('/^[\'"]?(.*?)[\'"]?$/', '$1', trim(array_pop($parts))));
-            if (isset($parts[0])) {
-                $array[preg_replace('/^[\'"]?(.*?)[\'"]?$/', '$1', trim($parts[0]))] = $value;
-            } else {
-                $array[] = $value;
-            }
-        }
-        return $array;
+    public static function isFunctionOrMethod($type)
+    {
+        return in_array($type, array(self::VALUE_TYPE_FUNCTION, self::VALUE_TYPE_METHOD, self::VALUE_TYPE_METHOD_STATIC));
+    }
+
+    /**
+     * Check if type is a literal value
+     *
+     * @param integer $type
+     *
+     * @return boolean
+     */
+    public static function isLiteral($type)
+    {
+        return $type === self::VALUE_TYPE_LITERAL;
+    }
+
+    /**
+     * Check if type is an array
+     *
+     * @param integer $type
+     *
+     * @return boolean
+     */
+    public static function isArray($type)
+    {
+        return $type === self::VALUE_TYPE_ARRAY;
+    }
+
+    /**
+     * Check if type is a function
+     *
+     * @param integer $type
+     *
+     * @return boolean
+     */
+    public static function isFunction($type)
+    {
+        return $type === self::VALUE_TYPE_FUNCTION;
+    }
+
+    /**
+     * Check if type is a method
+     *
+     * @param integer $type
+     *
+     * @return boolean
+     */
+    public static function isMethod($type)
+    {
+        return $type === self::VALUE_TYPE_METHOD;
+    }
+
+    /**
+     * Check if type is a static method
+     *
+     * @param integer $type
+     *
+     * @return boolean
+     */
+    public static function isStaticMethod($type)
+    {
+        return $type === self::VALUE_TYPE_METHOD_STATIC;
     }
 
 }

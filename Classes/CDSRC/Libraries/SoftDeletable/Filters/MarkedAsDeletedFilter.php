@@ -2,28 +2,57 @@
 
 namespace CDSRC\Libraries\SoftDeletable\Filters;
 
-/* *
- * This script belongs to the TYPO3 Flow package "CDSRC.Libraries".       *
- *                                                                        *
- *                                                                        */
+/*******************************************************************************
+ *
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ******************************************************************************/
 
 use CDSRC\Libraries\SoftDeletable\Annotations\SoftDeletable;
 use CDSRC\Libraries\SoftDeletable\Exceptions\PropertyNotFoundException;
-use CDSRC\Libraries\SoftDeletable\Exceptions\InfiniteLoopException;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\Filter\SQLFilter;
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Core\Bootstrap;
 
 /**
+ * ORM query filter to get only active entities
+ *
  * @Flow\Proxy(value=false)
+ *
+ * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-class MarkedAsDeletedFilter extends SQLFilter {
+class MarkedAsDeletedFilter extends SQLFilter
+{
 
     /**
      * Store column data for classes
+     *
      * @var array
      */
-    protected static $datas = array();
+    protected static $data = array();
+
+    /**
+     * Disabled class name for filter
+     *
+     * @var array
+     */
+    protected static $disabled = array();
 
     /**
      * @var \TYPO3\Flow\Reflection\ReflectionService
@@ -36,16 +65,10 @@ class MarkedAsDeletedFilter extends SQLFilter {
     protected $entityManager;
 
     /**
-     * Disabled classname for filter
-     * 
-     * @var array
-     */
-    protected static $disabled = array();
-
-    /**
      * {@inheritdoc}
      */
-    public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias) {
+    public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias)
+    {
         $className = $targetEntity->getName();
         if (isset(self::$disabled[$className])) {
             return '';
@@ -53,9 +76,9 @@ class MarkedAsDeletedFilter extends SQLFilter {
             return '';
         }
         $dataKey = $className . '|' . $targetTableAlias;
-        if (!isset(self::$datas[$dataKey])) {
+        if (!isset(self::$data[$dataKey])) {
             $annotation = $this->getReflectionService()->getClassAnnotation($className, SoftDeletable::class);
-            if ($annotation !== NULL) {
+            if ($annotation !== null) {
                 $existingProperties = $this->getReflectionService()->getClassPropertyNames($className);
                 if (!in_array($annotation->deleteProperty, $existingProperties)) {
                     throw new PropertyNotFoundException("Property '" . $annotation->deleteProperty . "' not found for '" . $className . "'", 1439207432);
@@ -68,37 +91,42 @@ class MarkedAsDeletedFilter extends SQLFilter {
                 if ($annotation->timeAware) {
                     $addCondSql .= ' OR ' . $targetTableAlias . '.' . $column . ' > ' . $conn->quote(date('Y-m-d H:i:s'));
                 }
-                self::$datas[$dataKey] = $addCondSql;
+                self::$data[$dataKey] = $addCondSql;
             } else {
-                self::$datas[$dataKey] = FALSE;
+                self::$data[$dataKey] = false;
             }
         }
-        return self::$datas[$dataKey] ? self::$datas[$dataKey] : '';
+
+        return self::$data[$dataKey] ? self::$data[$dataKey] : '';
     }
 
     /**
      * Get reflection service from bootstrap
-     * 
+     *
      * @return \TYPO3\Flow\Reflection\ReflectionService
      */
-    protected function getReflectionService() {
+    protected function getReflectionService()
+    {
         if ($this->reflectionService === null) {
-            $this->reflectionService = \TYPO3\Flow\Core\Bootstrap::$staticObjectManager->get('TYPO3\Flow\Reflection\ReflectionService');
+            $this->reflectionService = Bootstrap::$staticObjectManager->get('TYPO3\Flow\Reflection\ReflectionService');
         }
+
         return $this->reflectionService;
     }
 
     /**
      * Get entityManager from parent
-     * 
+     *
      * @return \Doctrine\ORM\EntityManager
      */
-    protected function getEntityManager() {
+    protected function getEntityManager()
+    {
         if ($this->entityManager === null) {
-            $refl = new \ReflectionProperty('Doctrine\ORM\Query\Filter\SQLFilter', 'em');
-            $refl->setAccessible(true);
-            $this->entityManager = $refl->getValue($this);
+            $reflexion = new \ReflectionProperty('Doctrine\ORM\Query\Filter\SQLFilter', 'em');
+            $reflexion->setAccessible(true);
+            $this->entityManager = $reflexion->getValue($this);
         }
+
         return $this->entityManager;
     }
 

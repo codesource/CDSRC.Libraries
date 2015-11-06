@@ -2,42 +2,51 @@
 
 namespace CDSRC\Libraries\SoftDeletable\Domain\Repository;
 
-/*
- * Copyright (C) 2015 Matthias Toscanelli <m.toscanelli@code-source.ch>
+/*******************************************************************************
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  All rights reserved
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ******************************************************************************/
 
+use CDSRC\Libraries\SoftDeletable\Annotations\SoftDeletable;
 use TYPO3\Flow\Annotations as Flow;
-use CDSRC\Libraries\SoftDeletable\Filters\MarkedAsDeletedFilter as Filter;
+use TYPO3\Flow\Persistence\Repository;
 
 /**
- * A repository for Generic
+ * Abstract repository for SoftDeletable entities
+ *
  * @Flow\Scope("singleton")
+ *
+ * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-abstract class AbstractRepository extends \TYPO3\Flow\Persistence\Repository {
+abstract class AbstractRepository extends Repository
+{
 
     /**
      *
-     * @var boolean 
+     * @var boolean
      */
-    protected $enableDeleted = FALSE;
+    protected $enableDeleted = false;
 
     /**
-     * @var \CDSRC\Libraries\SoftDeletable\Annotations\SoftDeletable|boolean
+     * @var SoftDeletable|boolean
      */
-    protected $deleteAnnotation = NULL;
+    protected $deleteAnnotation = null;
 
     /**
      * @Flow\Inject
@@ -52,88 +61,91 @@ abstract class AbstractRepository extends \TYPO3\Flow\Persistence\Repository {
     protected $reflectionService;
 
     /**
-     * Constructor
-     * @param \TYPO3\Flow\Object\ObjectManagerInterface $objectManager
+     *
+     * @return $this
      */
-    public function __construct(\TYPO3\Flow\Object\ObjectManagerInterface $objectManager) {
-        parent::__construct();
-        $this->entityManager = $objectManager->get('Doctrine\Common\Persistence\ObjectManager');
-    }
+    public function allowDeleted()
+    {
+        $this->enableDeleted = true;
 
-    /**
-     * 
-     * @return \AbstractRepository
-     */
-    public function allowDeleted() {
-        $this->enableDeleted = TRUE;
         return $this;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function findAll() {
+    public function findAll()
+    {
         if ($this->enableDeleted) {
             $this->entityManager->getFilters()->disable('cdsrc.libraries.softdeletable.filter');
         }
         $result = parent::findAll();
-        $this->enableDeleted = FALSE;
+        $this->enableDeleted = false;
         $this->entityManager->getFilters()->enable('cdsrc.libraries.softdeletable.filter');
+
         return $result;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function countAll() {
+    public function countAll()
+    {
         if ($this->enableDeleted) {
             $this->entityManager->getFilters()->disable('cdsrc.libraries.softdeletable.filter');
         }
         $result = parent::countAll();
-        $this->enableDeleted = FALSE;
+        $this->enableDeleted = false;
         $this->entityManager->getFilters()->enable('cdsrc.libraries.softdeletable.filter');
+
         return $result;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function createQuery() {
+    public function createQuery()
+    {
         $query = parent::createQuery();
         if (!$this->enableDeleted) {
-            if ($this->deleteAnnotation === NULL) {
-                $this->deleteAnnotation = FALSE;
-                $annotation = $this->reflectionService->getClassAnnotation($this->entityClassName, \CDSRC\Libraries\SoftDeletable\Annotations\SoftDeletable::class);
-                if ($annotation !== NULL) {
+            if ($this->deleteAnnotation === null) {
+                $this->deleteAnnotation = false;
+                $annotation = $this->reflectionService->getClassAnnotation($this->entityClassName, SoftDeletable::class);
+                if ($annotation !== null) {
                     $existingProperties = $this->reflectionService->getClassPropertyNames($this->entityClassName);
                     if (in_array($annotation->deleteProperty, $existingProperties)) {
                         $this->deleteAnnotation = $annotation;
                     }
                 }
             }
-            if ($this->deleteAnnotation !== FALSE) {
+            if ($this->deleteAnnotation !== false) {
                 if ($this->deleteAnnotation->timeAware) {
-                    $query = $query->matching($query->logicalOr(
-                                    $query->equals($this->deleteAnnotation->deleteProperty, NULL), $query->lessThanOrEqual($this->deleteAnnotation->deleteProperty, new \DateTime())
-                    ));
+                    $query = $query->matching($query->logicalOr(array(
+                        $query->equals($this->deleteAnnotation->deleteProperty, null),
+                        $query->lessThanOrEqual($this->deleteAnnotation->deleteProperty, new \DateTime())
+
+                    )));
                 } else {
-                    $query = $query->matching($query->equals($this->deleteAnnotation->deleteProperty, NULL));
+                    $query = $query->matching($query->equals($this->deleteAnnotation->deleteProperty, null));
                 }
             }
         }
+
         return $query;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function __call($method, $arguments) {
+    public function __call($method, $arguments)
+    {
         if ($this->enableDeleted) {
             $this->entityManager->getFilters()->disable('cdsrc.libraries.softdeletable.filter');
         }
         $result = parent::__call($method, $arguments);
-        $this->enableDeleted = FALSE;
+        $this->enableDeleted = false;
         $this->entityManager->getFilters()->enable('cdsrc.libraries.softdeletable.filter');
+
         return $result;
     }
 

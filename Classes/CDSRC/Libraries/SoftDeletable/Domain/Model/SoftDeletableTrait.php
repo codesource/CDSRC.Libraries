@@ -2,71 +2,76 @@
 
 namespace CDSRC\Libraries\SoftDeletable\Domain\Model;
 
-/* *
- * This script belongs to the TYPO3 Flow package "CDSRC.Libraries".       *
- *                                                                        *
- *                                                                        */
+/*******************************************************************************
+ *
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ******************************************************************************/
 
-use TYPO3\Flow\Annotations as Flow;
-use Doctrine\ORM\Mapping as ORM;
 use CDSRC\Libraries\SoftDeletable\Annotations as CDSRC;
+use Doctrine\ORM\Mapping as ORM;
+use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Security\Account;
 
 /**
- * 
+ * SoftDeletable trait
+ * NOTICE: Doctrine must be patched with https://github.com/doctrine/annotations/pull/58
+ *
  * @CDSRC\SoftDeletable(deleteProperty="deletedAt", hardDeleteProperty="forceDelete")
+ *
+ * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-trait SoftDeletableTrait {
+trait SoftDeletableTrait
+{
 
     /**
      * Store when the entity has been deleted
-     * 
+     *
      * @var \DateTime
      * @ORM\Column(nullable=true)
      */
-    protected $deletedAt = NULL;
+    protected $deletedAt = null;
 
     /**
      * Who has deleted this entity
-     * 
+     *
      * @var \TYPO3\Flow\Security\Account
      * @ORM\ManyToOne
      * @ORM\Column(nullable=true)
      */
-    protected $deletedBy = NULL;
-    
+    protected $deletedBy = null;
+
     /**
      * Force entity to be hard delete
-     * 
+     *
      * @var boolean
      * @Flow\Transient
      */
-    protected $forceDelete = FALSE;
+    protected $forceDelete = false;
 
     /**
      * Returns deletedAt.
      *
      * @return \DateTime
      */
-    public function getDeletedAt() {
+    public function getDeletedAt()
+    {
         return $this->deletedAt;
-    }
-
-    /**
-     * Returns deletedAt.
-     *
-     * @return \TYPO3\Flow\Security\Account
-     */
-    public function getDeletedBy() {
-        return $this->deletedBy;
-    }
-    
-    /**
-     * Returns hard delete status
-     * 
-     * @return boolean
-     */
-    public function getForceDelete(){
-        return $this->forceDelete;
     }
 
     /**
@@ -76,9 +81,21 @@ trait SoftDeletableTrait {
      *
      * @return $this
      */
-    public function setDeletedAt(\DateTime $deletedAt = NULL) {
+    public function setDeletedAt(\DateTime $deletedAt = null)
+    {
         $this->deletedAt = $deletedAt;
+
         return $this;
+    }
+
+    /**
+     * Returns deletedAt.
+     *
+     * @return \TYPO3\Flow\Security\Account
+     */
+    public function getDeletedBy()
+    {
+        return $this->deletedBy;
     }
 
     /**
@@ -88,29 +105,45 @@ trait SoftDeletableTrait {
      *
      * @return $this
      */
-    public function setDeletedBy(\TYPO3\Flow\Security\Account $deletedBy = NULL) {
+    public function setDeletedBy(Account $deletedBy = null)
+    {
         $this->deletedBy = $deletedBy;
+
         return $this;
     }
-    
+
     /**
-     * Force/Unforce hard delete
-     * 
+     * Returns hard delete status
+     *
+     * @return boolean
+     */
+    public function getForceDelete()
+    {
+        return $this->forceDelete;
+    }
+
+    /**
+     * Force/UnForce hard delete
+     *
      * @param boolean $force
+     *
      * @return $this
      */
-    public function forceHardDelete($force = TRUE){
+    public function forceHardDelete($force = true)
+    {
         $this->forceDelete = $force;
+
         return $this;
     }
 
     /**
      * Is this entity deleted?
-     * 
+     *
      * @return boolean
      */
-    public function isDeleted() {
-        return $this->deletedAt !== NULL;
+    public function isDeleted()
+    {
+        return $this->deletedAt !== null;
     }
 
 }

@@ -1,65 +1,75 @@
 <?php
+
 namespace CDSRC\Libraries\Traceable\Domain\Model;
 
-/*
- * Copyright (C) 2015 Matthias Toscanelli <m.toscanelli@code-source.ch>
+/*******************************************************************************
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  All rights reserved
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ******************************************************************************/
 
-use TYPO3\Flow\Annotations as Flow;
-use Doctrine\ORM\Mapping as ORM;
 use CDSRC\Libraries\Traceable\Annotations as CDSRC;
+use Doctrine\ORM\Mapping as ORM;
+use TYPO3\Flow\Annotations as Flow;
 
 /**
  * Trace IP for creations and updates
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-trait IpTraceableTrait {
+trait IpTraceableTrait
+{
 
     /**
+     * IP address on creation
      *
      * @var string
-     * @CDSRC\Traceable(on="create", value="\CDSRC\Libraries\Traceable\Utility\GeneralUtility::getRemoteAddr()")
+     * @CDSRC\Traceable(on="create", value="\CDSRC\Libraries\Traceable\Utility\GeneralUtility::getRemoteAddress()")
      * @ORM\Column(nullable=true)
      */
-    protected $createdFromIp = NULL;
+    protected $createdFromIp = null;
 
     /**
+     * IP address on last update
      *
      * @var string
-     * @CDSRC\Traceable(on="update", value="\CDSRC\Libraries\Traceable\Utility\GeneralUtility::getRemoteAddr()")
+     * @CDSRC\Traceable(on="update", value="\CDSRC\Libraries\Traceable\Utility\GeneralUtility::getRemoteAddress()")
      * @ORM\Column(nullable=true)
      */
-    protected $updatedFromIp = NULL;
-    
+    protected $updatedFromIp = null;
+
     /**
      * Get IP address of creation
-     * 
+     *
      * @return string|NULL
      */
-    public function getCreatedFromIp(){
+    public function getCreatedFromIp()
+    {
         return $this->createdFromIp;
     }
-    
+
     /**
      * Get IP address of last update
-     * 
+     *
      * @return string|NULL
      */
-    public function getUpdatedFromIp(){
+    public function getUpdatedFromIp()
+    {
         return $this->updatedFromIp;
     }
 }
