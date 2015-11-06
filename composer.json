@@ -1,7 +1,7 @@
 {
     "name": "cdsrc/libraries",
     "type": "typo3-flow-package",
-    "description": "FLOW3 package containing multiple usefull libraries",
+    "description": "FLOW3 package containing multiple usefully libraries",
     "require": {
         "php": ">=5.5.0",
 

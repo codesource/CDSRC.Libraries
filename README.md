@@ -1,5 +1,5 @@
 # CDSRC.Libraries
-FLOW3 package containing multiple usefull libraries
+FLOW3 package containing multiple usefully libraries
 
 ## Available libraries
 
