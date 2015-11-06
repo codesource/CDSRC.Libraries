@@ -2,37 +2,29 @@
 
 namespace CDSRC\Libraries\Tests\Unit\Utility;
 
-/*
- * Copyright (C) 2015 Matthias Toscanelli <m.toscanelli@code-source.ch>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-use CDSRC\Libraries\Utility\AnnotationValueParser as Parser;
+
+/* *
+ * This script belongs to the TYPO3 Flow package "CDSRC.Libraries".       *
+ *                                                                        *
+ *                                                                        */
+
 use CDSRC\Libraries\Exceptions\InvalidValueException;
+use CDSRC\Libraries\Utility\AnnotationValueParser as Parser;
+use TYPO3\Flow\Tests\UnitTestCase;
 
 /**
- * Testcase for the traceable annotation
+ * Test case for the traceable annotation
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-class AnnotationValueParserTest extends \TYPO3\Flow\Tests\UnitTestCase {
-
+class AnnotationValueParserTest extends UnitTestCase
+{
 
     /**
      * dataProvider for translation testing
      */
-    public function getValuesResults() {
+    public function getValuesResults()
+    {
         return array(
             // Literal
             array('2', array(
@@ -51,31 +43,31 @@ class AnnotationValueParserTest extends \TYPO3\Flow\Tests\UnitTestCase {
                 'type' => Parser::VALUE_TYPE_LITERAL,
                 'content' => '"quoted_function()"'
             )),
-            
+
             // Functions
             array('date()', array(
-                    'type' => Parser::VALUE_TYPE_FUNCTION,
-                    'function' => 'date',
-                    'arguments' => array()
-                )),
+                'type' => Parser::VALUE_TYPE_FUNCTION,
+                'function' => 'date',
+                'arguments' => array()
+            )),
             array('date("Y-m-d H:i:s")', array(
-                    'type' => Parser::VALUE_TYPE_FUNCTION,
-                    'function' => 'date',
-                    'arguments' => array('Y-m-d H:i:s')
-                )),
+                'type' => Parser::VALUE_TYPE_FUNCTION,
+                'function' => 'date',
+                'arguments' => array('Y-m-d H:i:s')
+            )),
             array('substr(date("Y-m-d H:i:s"), 0, 10)', array(
-                    'type' => Parser::VALUE_TYPE_FUNCTION,
-                    'function' => 'substr',
-                    'arguments' => array(
-                        array(
-                            'type' => Parser::VALUE_TYPE_FUNCTION,
-                            'function' => 'date',
-                            'arguments' => array('Y-m-d H:i:s')
-                        ),
-                        0,
-                        10
-                    )
-                )),
+                'type' => Parser::VALUE_TYPE_FUNCTION,
+                'function' => 'substr',
+                'arguments' => array(
+                    array(
+                        'type' => Parser::VALUE_TYPE_FUNCTION,
+                        'function' => 'date',
+                        'arguments' => array('Y-m-d H:i:s')
+                    ),
+                    0,
+                    10
+                )
+            )),
             array('rtrim ( substr (date ("Y-m-d H:i:s") , rand(  0 ,2) , rand ( 2, 3)), \'\\\\\')', array(
                 'type' => Parser::VALUE_TYPE_FUNCTION,
                 'function' => 'rtrim',
@@ -109,7 +101,7 @@ class AnnotationValueParserTest extends \TYPO3\Flow\Tests\UnitTestCase {
                 'type' => Parser::VALUE_TYPE_LITERAL,
                 'content' => 'unclosed_function('
             )),
-            
+
             // Methods
             array('\CDSRC\Libraries\Tests\Unit\Utility\Fixture\DummyClass("value")->getVar()', array(
                 'type' => Parser::VALUE_TYPE_METHOD,
@@ -153,20 +145,32 @@ class AnnotationValueParserTest extends \TYPO3\Flow\Tests\UnitTestCase {
             array('\CDSRC\Libraries\Tests\Unit\Utility\Fixture\DummyClass::test1()', array(), InvalidValueException::class, 1439255384),
             array('\CDSRC\Libraries\Tests\Unit\Utility\Fixture\DummyClass->test3()', array(), InvalidValueException::class, 1439255385),
             array('\CDSRC\Libraries\Tests\Unit\Utility\Fixture\DummyClass2->getVar()', array(), InvalidValueException::class, 1439255395),
-            
-            
+
+
             // Array
             array('array("test", 2, 4, "key" => ",", date("Y-m-d"))', array(
                 'type' => Parser::VALUE_TYPE_ARRAY,
                 'content' => array(
-                    'test', 
-                    '2', 
-                    '4', 
-                    'key' => ',', 
                     array(
-                    'type' => Parser::VALUE_TYPE_FUNCTION,
-                    'function' => 'date',
-                    'arguments' => array("Y-m-d")
+                        'type' => Parser::VALUE_TYPE_LITERAL,
+                        'content' => 'test'
+                    ),
+                    array(
+                        'type' => Parser::VALUE_TYPE_LITERAL,
+                        'content' => 2
+                    ),
+                    array(
+                        'type' => Parser::VALUE_TYPE_LITERAL,
+                        'content' => '4'
+                    ),
+                    'key' => array(
+                        'type' => Parser::VALUE_TYPE_LITERAL,
+                        'content' => ','
+                    ),
+                    array(
+                        'type' => Parser::VALUE_TYPE_FUNCTION,
+                        'function' => 'date',
+                        'arguments' => array("Y-m-d")
                     ))
             )),
         );
@@ -174,20 +178,20 @@ class AnnotationValueParserTest extends \TYPO3\Flow\Tests\UnitTestCase {
 
     /**
      * Check all value parsing case
-     * 
+     *
      * @param string $value
      * @param array $result
      * @param string $throwException
      * @param integer $throwExceptionCode
-     * 
+     *
      * @test
      * @dataProvider getValuesResults
      */
-    public function checkValueParsing($value, $result, $throwException = NULL, $throwExceptionCode = NULL) {
+    public function checkValueParsing($value, $result, $throwException = NULL, $throwExceptionCode = NULL)
+    {
         $this->setExpectedException($throwException, '', $throwExceptionCode);
         $this->assertEquals($result, Parser::parseValue($value));
     }
-    
-    
+
 
 }
