@@ -19,13 +19,14 @@ namespace CDSRC\Libraries\Tests\Unit\Translatable;
  */
 
 use CDSRC\Libraries\Tests\Unit\SoftDeletable\Fixture\Model\Entity;
+use TYPO3\Flow\Tests\UnitTestCase;
 
 /**
- * Testcase for the translatable trait
+ * Test case for the translatable trait
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-class SoftDeletableTest extends \TYPO3\Flow\Tests\UnitTestCase {
+class SoftDeletableTest extends UnitTestCase {
     
     /**
      * @test

@@ -1,6 +1,6 @@
 <?php
 
-namespace CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Model;
+namespace CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Model;
 
 /*******************************************************************************
  *
@@ -23,37 +23,57 @@ namespace CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Model;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ******************************************************************************/
 
-use CDSRC\Libraries\SoftDeletable\Annotations as CDSRC;
-use CDSRC\Libraries\SoftDeletable\Domain\Model\SoftDeletableTrait as SoftDeletable;
+use CDSRC\Libraries\Traceable\Annotations as CDSRC;
+use CDSRC\Libraries\Traceable\Domain\Model\TimestampableTrait as TimestampableTrait;
 use Doctrine\ORM\Mapping as ORM;
 use TYPO3\Flow\Annotations as Flow;
 
 /**
- * A dummy entity
+ * A dummy entity to test Timestampable trait
  *
  * @Flow\Entity
- * @CDSRC\SoftDeletable(deleteProperty="deletedAt", hardDeleteProperty="forceDelete", timeAware=false)
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-class Entity2
-{
-    use SoftDeletable;
+class Timestampable {
+    use TimestampableTrait;
 
     /**
      *
-     * @var string
+     * @var string 
      * @ORM\Column(nullable=true)
      */
     protected $type;
 
-    public function __construct($type = '')
-    {
+    /**
+     *
+     * @var \DateTime
+     * @CDSRC\Traceable(on="change", value="now", field="type")
+     * @ORM\Column(nullable=true)
+     */
+    protected $changedAt;
+
+    /**
+     *
+     * @var \DateTime
+     * @CDSRC\Traceable(on="change", value="now", field="type", fieldValues="array('value1', 'value2')")
+     * @ORM\Column(nullable=true)
+     */
+    protected $changedAtIf;
+
+    public function __construct($type = '') {
         $this->type = $type;
     }
 
-    public function someMethod()
-    {
+    public function setType($type) {
+        $this->type = $type;
+    }
 
+    public function getChangedAt() {
+        return $this->changedAt;
+    }
+
+    public function getChangedAtIf() {
+        return $this->changedAtIf;
     }
 }

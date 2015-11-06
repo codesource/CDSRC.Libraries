@@ -1,24 +1,39 @@
 <?php
+
 namespace CDSRC\Libraries\Tests\Functional\Traceable;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow framework.                       *
- *                                                                        *
- * It is free software; you can redistribute it and/or modify it under    *
- * the terms of the GNU Lesser General Public License, either version 3   *
- * of the License, or (at your option) any later version.                 *
- *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
- *                                                                        */
+/*******************************************************************************
+ *
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ******************************************************************************/
 
 use CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Model\UserTraceable as Entity;
 use CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Repository\UserTraceableRepository as EntityRepository;
+use TYPO3\Flow\Persistence\Doctrine\PersistenceManager;
+use TYPO3\Flow\Security\Account;
+use TYPO3\Flow\Tests\FunctionalTestCase;
 
 /**
- * Testcase for entity delete and recover
+ * Test case for entity delete and recover
  *
  */
-class UserTraceableTest extends \TYPO3\Flow\Tests\FunctionalTestCase {
+class UserTraceableTest extends FunctionalTestCase {
 
 	/**
 	 * @var boolean
@@ -40,7 +55,7 @@ class UserTraceableTest extends \TYPO3\Flow\Tests\FunctionalTestCase {
 	 */
 	public function setUp() {
 		parent::setUp(); 
-		if (!$this->persistenceManager instanceof \TYPO3\Flow\Persistence\Doctrine\PersistenceManager) {
+		if (!$this->persistenceManager instanceof PersistenceManager) {
 			$this->markTestSkipped('Doctrine persistence is not enabled');
 		}
         $this->entityRepository = new EntityRepository();
@@ -50,7 +65,7 @@ class UserTraceableTest extends \TYPO3\Flow\Tests\FunctionalTestCase {
      * @test
      */
     public function testUserTracing(){
-		$account = new \TYPO3\Flow\Security\Account();
+		$account = new Account();
 		$account->setAccountIdentifier('testUserTracing');
 		$account->setAuthenticationProviderName('TestingProvider');
         $this->persistenceManager->add($account);
@@ -68,7 +83,7 @@ class UserTraceableTest extends \TYPO3\Flow\Tests\FunctionalTestCase {
         $this->persistenceManager->persistAll();
         $this->assertEquals($entity->getUpdatedBy(), $account);
         
-		$account2 = new \TYPO3\Flow\Security\Account();
+		$account2 = new Account();
 		$account2->setAccountIdentifier('testUserTracing2');
 		$account2->setAuthenticationProviderName('TestingProvider');
         $this->persistenceManager->add($account2);

@@ -18,8 +18,8 @@ namespace CDSRC\Libraries\Tests\Unit\SoftDeletable\Fixture\Model;
  */
 
 use CDSRC\Libraries\SoftDeletable\Domain\Model\SoftDeletableTrait as SoftDeletable;
-use TYPO3\Flow\Annotations as Flow;
 use Doctrine\ORM\Mapping as ORM;
+use TYPO3\Flow\Annotations as Flow;
 
 /**
  * A dummy entity

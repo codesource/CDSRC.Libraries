@@ -20,13 +20,14 @@ namespace CDSRC\Libraries\Tests\Unit\Traceable;
  */
 
 use CDSRC\Libraries\Traceable\Annotations\Traceable;
+use TYPO3\Flow\Tests\UnitTestCase;
 
 /**
- * Testcase for the traceable annotation
+ * Test case for the traceable annotation
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-class AnnotationTest extends \TYPO3\Flow\Tests\UnitTestCase {
+class AnnotationTest extends UnitTestCase {
 
     /**
      * @test
@@ -34,7 +35,7 @@ class AnnotationTest extends \TYPO3\Flow\Tests\UnitTestCase {
     public function checkAnnotationCreation() {
         // test "on"
         foreach (array('create', 'update', 'change') as $event) {
-            $values = array('on' => $event, 'field' => 'somefield');
+            $values = array('on' => $event, 'field' => 'someField');
             $annotation = new Traceable($values);
             $this->assertEquals($event, $annotation->on);
         }

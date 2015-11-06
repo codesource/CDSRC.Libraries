@@ -1,6 +1,6 @@
 <?php
 
-namespace CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Model;
+namespace CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Repository;
 
 /*******************************************************************************
  *
@@ -23,37 +23,15 @@ namespace CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Model;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ******************************************************************************/
 
-use CDSRC\Libraries\SoftDeletable\Annotations as CDSRC;
-use CDSRC\Libraries\SoftDeletable\Domain\Model\SoftDeletableTrait as SoftDeletable;
-use Doctrine\ORM\Mapping as ORM;
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Persistence\Repository;
 
 /**
- * A dummy entity
- *
- * @Flow\Entity
- * @CDSRC\SoftDeletable(deleteProperty="deletedAt", hardDeleteProperty="forceDelete", timeAware=false)
+ * A repository for Entity
+ * @Flow\Scope("singleton")
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-class Entity2
+class TimestampableRepository extends Repository
 {
-    use SoftDeletable;
-
-    /**
-     *
-     * @var string
-     * @ORM\Column(nullable=true)
-     */
-    protected $type;
-
-    public function __construct($type = '')
-    {
-        $this->type = $type;
-    }
-
-    public function someMethod()
-    {
-
-    }
 }
