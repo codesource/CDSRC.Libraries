@@ -104,39 +104,6 @@ abstract class AbstractRepository extends Repository
     /**
      * {@inheritdoc}
      */
-    public function createQuery()
-    {
-        $query = parent::createQuery();
-        if (!$this->enableDeleted) {
-            if ($this->deleteAnnotation === null) {
-                $this->deleteAnnotation = false;
-                $annotation = $this->reflectionService->getClassAnnotation($this->entityClassName, SoftDeletable::class);
-                if ($annotation !== null) {
-                    $existingProperties = $this->reflectionService->getClassPropertyNames($this->entityClassName);
-                    if (in_array($annotation->deleteProperty, $existingProperties)) {
-                        $this->deleteAnnotation = $annotation;
-                    }
-                }
-            }
-            if ($this->deleteAnnotation !== false) {
-                if ($this->deleteAnnotation->timeAware) {
-                    $query = $query->matching($query->logicalOr(array(
-                        $query->equals($this->deleteAnnotation->deleteProperty, null),
-                        $query->lessThanOrEqual($this->deleteAnnotation->deleteProperty, new \DateTime())
-
-                    )));
-                } else {
-                    $query = $query->matching($query->equals($this->deleteAnnotation->deleteProperty, null));
-                }
-            }
-        }
-
-        return $query;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function __call($method, $arguments)
     {
         if ($this->enableDeleted) {
