@@ -43,7 +43,7 @@ interface TranslatableInterface
      *
      * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
      */
-    function addTranslation(TranslationInterface $translation);
+    public function addTranslation(TranslationInterface $translation);
 
     /**
      * Remove a translation
@@ -52,7 +52,7 @@ interface TranslatableInterface
      *
      * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
      */
-    function removeTranslation(TranslationInterface $translation);
+    public function removeTranslation(TranslationInterface $translation);
 
     /**
      * Remove a translation by locale
@@ -61,14 +61,14 @@ interface TranslatableInterface
      *
      * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
      */
-    function removeTranslationByLocale(Locale $locale);
+    public function removeTranslationByLocale(Locale $locale);
 
     /**
      * Remove all translations
      *
      * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
      */
-    function removeAllTranslations();
+    public function removeAllTranslations();
 
     /**
      * Replace all translations by the given collection
@@ -77,21 +77,21 @@ interface TranslatableInterface
      *
      * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
      */
-    function setTranslations(ArrayCollection $translations);
+    public function setTranslations(ArrayCollection $translations);
 
     /**
      * Get all translations
      *
      * @return \Doctrine\Common\Collections\ArrayCollection<\CDSRC\Libraries\Translatable\Domain\Model\TranslationInterface>
      */
-    function getTranslations();
+    public function getTranslations();
 
     /**
      * Get fallback on translation status
      *
      * @return boolean
      */
-    function getFallbackOnTranslation();
+    public function getFallbackOnTranslation();
 
     /**
      * Check if object has a translation for a specific locale
@@ -100,7 +100,7 @@ interface TranslatableInterface
      *
      * @return boolean
      */
-    function hasTranslationForLocale(Locale $locale);
+    public function hasTranslationForLocale(Locale $locale);
 
     /**
      * Set fallback on translation status
@@ -109,5 +109,5 @@ interface TranslatableInterface
      *
      * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
      */
-    function setFallbackOnTranslation($fallback);
+    public function setFallbackOnTranslation($fallback);
 }
