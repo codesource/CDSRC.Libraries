@@ -173,14 +173,14 @@ abstract class AbstractTranslation
     public function __call($method, $arguments)
     {
         $match = null;
-        if (preg_match('/^get([A-Z][a-z0-9A-Z]*)$/', $method, $match)) {
+        if (preg_match('/^get([a-z0-9A-Z_]+)$/', $method, $match)) {
             $property = lcfirst($match[1]);
             $annotation = $this->reflectionService->getPropertyAnnotation(get_class($this), $property, 'CDSRC\\Libraries\\Translatable\\Annotations\\Locked');
             if (!$annotation instanceof Locked) {
                 return $this->get($property);
             }
         }
-        if (preg_match('/^set([A-Z][a-z0-9A-Z]*)$/', $method, $match)) {
+        if (preg_match('/^set([a-z0-9A-Z_]*)$/', $method, $match)) {
             $property = lcfirst($match[1]);
             $annotation = $this->reflectionService->getPropertyAnnotation(get_class($this), $property, 'CDSRC\\Libraries\\Translatable\\Annotations\\Locked');
             if (!$annotation instanceof Locked) {
