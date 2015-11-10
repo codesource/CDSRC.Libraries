@@ -41,14 +41,14 @@ interface TranslationInterface
      *
      * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslationInterface
      */
-    public function setI18nParent(TranslatableInterface $parent, $bidirectional = true);
+    function setI18nParent(TranslatableInterface $parent, $bidirectional = true);
 
     /**
      * Get parent
      *
      * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
      */
-    public function getI18nParent();
+    function getI18nParent();
 
     /**
      * Set current translation locale
@@ -57,12 +57,12 @@ interface TranslationInterface
      *
      * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslationInterface
      */
-    public function setI18nLocale($locale);
+    function setI18nLocale($locale);
 
     /**
      * Get current translation locale
      *
      * @return \TYPO3\Flow\I18n\Locale
      */
-    public function getI18nLocale();
+    function getI18nLocale();
 }
