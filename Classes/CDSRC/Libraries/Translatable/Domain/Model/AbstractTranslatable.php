@@ -55,12 +55,30 @@ abstract class AbstractTranslatable implements TranslatableInterface
     protected $fallbackOnTranslation = true;
 
     /**
+     * Store unannotated translatable fields
+     * Notice: if you override this field in child classes, this property has to be transient (otherwise an unneeded
+     * field will be created in the DB).
+     *
+     * @Flow\Transient
+     * @var array
+     */
+    protected $translatableFields = array();
+
+    /**
      * List of translations
      *
      * @var \Doctrine\Common\Collections\Collection<\CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation>
      * @ORM\OneToMany(mappedBy="i18nParent", cascade={"all"}, orphanRemoval=true)
      */
     protected $translations;
+
+    /**
+     * The current translation object to use (set it using setCurrentLocale)
+     * @Flow\Transient
+     * @var TranslationInterface
+     */
+    protected $curTranslation;
+
 
     /**
      * Constructor
@@ -117,15 +135,9 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @return boolean
      */
-    public function hasTranslationForLocale(Locale $locale = null)
+    public function hasTranslationForLocale(Locale $locale)
     {
-        foreach ($this->translations as $translation) {
-            if ($translation->getI18nLocale() === $locale) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->getTranslationObjectForLocale($locale) !== false;
     }
 
     /**
@@ -147,7 +159,29 @@ abstract class AbstractTranslatable implements TranslatableInterface
     }
 
     /**
-     * Remove a translation by object
+     * Get the translation object associated with the given locale. If it does not exist and $forceCreation is set, then
+     * the translation object is created.
+     *
+     * @param Locale $locale
+     * @param bool $forceCreation
+     * @return bool|TranslationInterface
+     */
+    public function getTranslationByLocale(Locale $locale, $forceCreation = false)
+    {
+        $translation = $this->getTranslationObjectForLocale($locale);
+        if ($translation) {
+            return $translation;
+        }
+
+        if($forceCreation){
+            return $this->createTranslation($locale);
+        }
+
+        return null;
+    }
+
+    /**
+     * Remove a translation object
      *
      * @param \CDSRC\Libraries\Translatable\Domain\Model\TranslationInterface $translation
      *
@@ -171,10 +205,9 @@ abstract class AbstractTranslatable implements TranslatableInterface
      */
     public function removeTranslationByLocale(Locale $locale)
     {
-        foreach ($this->translations as $translation) {
-            if ($translation->getI18nLocale() === $locale) {
-                $this->translations->removeElement($translation);
-            }
+        $translation = $this->getTranslationObjectForLocale($locale);
+        if ($translation) {
+            $this->translations->removeElement($translation);
         }
 
         return $this;
@@ -225,4 +258,128 @@ abstract class AbstractTranslatable implements TranslatableInterface
         return $this->translations;
     }
 
+    /**
+     * Return unannotated translatable fields
+     *
+     * @return array
+     */
+    public function getTranslatableFields()
+    {
+        return $this->translatableFields;
+    }
+
+    /**
+     * Set the translatable fields.
+     *
+     * @param array $fields The name of the translatable fields
+     */
+    public function setTranslatableFields($fields)
+    {
+        $this->translatableFields = $fields;
+    }
+
+    /**
+     * Set the given locale as the current one. If the locale does not yet exist and $forceCreation is set, then it is
+     * automatically created.
+     *
+     * @param Locale $locale
+     * @param bool $forceCreation
+     * @return $this
+     */
+    public function setCurrentLocale(Locale $locale, $forceCreation = false)
+    {
+        $this->curTranslation = $this->getTranslationObjectForLocale($locale);
+
+        if(false === $this->curTranslation && $forceCreation){
+            $this->curTranslation = $this->createTranslation($locale);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get the locale set as current, if any.
+     *
+     * @return null|Locale
+     */
+    public function getCurrentLocale()
+    {
+        if ($this->curTranslation) {
+            return $this->curTranslation->getI18nLocale();
+        }
+
+        return null;
+    }
+
+    /**
+     * Defines the getters and setters for translatable fields, basically delegating the responsibility of the execution
+     * to the appropriate translation object.
+     *
+     * @param string $method
+     * @param array $arguments
+     * @return mixed|null
+     */
+    public function __call($method, $arguments)
+    {
+        // By default we use the locale set with setCurrentLocale
+        $translation = $this->curTranslation;
+
+        $lastParam = end($arguments);
+        if($lastParam && $lastParam instanceof Locale) {
+            // If a locale is passed as last parameter, then use the associated translation
+            $translation = $this->getTranslationObjectForLocale($lastParam);
+        } else {
+            // If the last param is a boolean and the previous one is a Locale then use the associated translation
+            // forcing its creation if it does not exist
+            $previousParam = prev($arguments);
+            if (is_bool($lastParam) && $previousParam instanceof Locale) {
+                $translation = $this->getTranslationObjectForLocale($previousParam);
+                if (!$translation && $lastParam) {
+                    $translation = $this->createTranslation($previousParam);
+                }
+            }
+        }
+
+        if (!$translation) {
+            return null;
+        }
+
+        return call_user_func_array(array($translation, $method), $arguments);
+    }
+
+    /**
+     * Go through all the translation objects and return the one that matches the given locale or false if none were found.
+     *
+     * @param Locale $locale
+     * @return bool|TranslationInterface
+     */
+    protected function getTranslationObjectForLocale(Locale $locale)
+    {
+        /** @var TranslationInterface $translation */
+        foreach ($this->translations as $translation) {
+            if ((string)$translation->getI18nLocale() === (string)$locale) {
+                $translation->setI18nParent($this, false);
+                return $translation;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Create a new related translation object for the given locale if it does not already exist, and then return it.
+     *
+     * @param Locale $locale
+     * @return bool|TranslationInterface
+     */
+    protected function createTranslation(Locale $locale)
+    {
+        $translation = $this->getTranslationObjectForLocale($locale);
+        if (!$translation) {
+            $translationClassName = $this->getTranslationClassName();
+            $translation = new $translationClassName($locale);
+            $this->addTranslation($translation);
+        }
+        return $translation;
+    }
 }

@@ -40,7 +40,7 @@ use TYPO3\Flow\Property\Exception\InvalidPropertyException;
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-abstract class AbstractTranslation
+abstract class AbstractTranslation implements TranslationInterface
 {
 
     /**
@@ -154,7 +154,9 @@ abstract class AbstractTranslation
     public function setI18nParent(TranslatableInterface $parent, $bidirectional = true)
     {
         $this->i18nParent = $parent;
-        $this->parentClassName = get_class($this->i18nParent);
+        if(strlen($this->parentClassName) === 0){
+            $this->parentClassName = get_class($this->i18nParent);
+        }
         if ($bidirectional) {
             $this->i18nParent->addTranslation($this, false);
         }
@@ -172,15 +174,14 @@ abstract class AbstractTranslation
      */
     public function __call($method, $arguments)
     {
-        $match = null;
-        if (preg_match('/^get([a-z0-9A-Z_]+)$/', $method, $match)) {
-            $property = lcfirst($match[1]);
+        if (preg_match('/^(get|is|has)([a-z0-9A-Z_]+)$/', $method, $match)) {
+            $property = lcfirst($match[2]);
             $annotation = $this->reflectionService->getPropertyAnnotation(get_class($this), $property, 'CDSRC\\Libraries\\Translatable\\Annotations\\Locked');
             if (!$annotation instanceof Locked) {
                 return $this->get($property);
             }
         }
-        if (preg_match('/^set([a-z0-9A-Z_]*)$/', $method, $match)) {
+        if (preg_match('/^set([a-z0-9A-Z_]+)$/', $method, $match)) {
             $property = lcfirst($match[1]);
             $annotation = $this->reflectionService->getPropertyAnnotation(get_class($this), $property, 'CDSRC\\Libraries\\Translatable\\Annotations\\Locked');
             if (!$annotation instanceof Locked) {
@@ -214,30 +215,38 @@ abstract class AbstractTranslation
     protected function sanitizeProperty($property)
     {
         $_property = lcfirst($property);
-        if ($this->parentClassName === null && !empty($this->i18nParent)) {
+        if ($this->parentClassName === null && !isset($this->i18nParent)) {
             $this->parentClassName = get_class($this->i18nParent);
         }
-        if (strlen($this->parentClassName) > 0) {
-            if (isset(self::$propertiesCheckCache[$this->parentClassName]) && in_array($_property, self::$propertiesCheckCache[$this->parentClassName])) {
-                return $_property;
-            } else {
-                if (!property_exists($this->parentClassName, $_property)) {
-                    throw new InvalidPropertyException($_property . ' do not exists in ' . $this->parentClassName, 1428243278);
-                }
-                $annotation = $this->reflectionService->getPropertyAnnotation($this->parentClassName, $_property, 'CDSRC\\Libraries\\Translatable\\Annotations\\Translatable');
-                if (!$annotation instanceof Translatable) {
-                    throw new InvalidPropertyException($_property . ' is not translatable.', 1428243280);
-                }
-                if (!$this->propertyExists($_property)) {
-                    throw new InvalidPropertyException($_property . ' do not exists in ' . get_class($this), 1428243279);
-                }
-                self::$propertiesCheckCache[$this->parentClassName][] = $_property;
 
-                return $_property;
-            }
-        } else {
+        if (strlen($this->parentClassName) <= 0) {
             throw new InvalidClassException('Parent class name has not been set.', 1428243279);
         }
+
+        if (isset(self::$propertiesCheckCache[$this->parentClassName]) && in_array($_property, self::$propertiesCheckCache[$this->parentClassName])) {
+            return $_property;
+        }
+
+        if(isset($this->i18nParent) && in_array($_property, $this->i18nParent->getTranslatableFields())){
+            self::$propertiesCheckCache[$this->parentClassName][] = $_property;
+            return $_property;
+        }
+
+        if (!property_exists($this->parentClassName, $_property)) {
+            throw new InvalidPropertyException($_property . ' do not exists in ' . $this->parentClassName, 1428243278);
+        }
+
+        $annotation = $this->reflectionService->getPropertyAnnotation($this->parentClassName, $_property, 'CDSRC\\Libraries\\Translatable\\Annotations\\Translatable');
+        if (!$annotation instanceof Translatable) {
+            throw new InvalidPropertyException($_property . ' is not translatable.', 1428243280);
+        }
+
+        if (!$this->propertyExists($_property)) {
+            throw new InvalidPropertyException($_property . ' does not exists in ' . get_class($this), 1428243279);
+        }
+        self::$propertiesCheckCache[$this->parentClassName][] = $_property;
+
+        return $_property;
     }
 
     /**
