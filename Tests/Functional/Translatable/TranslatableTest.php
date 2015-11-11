@@ -147,6 +147,7 @@ class TranslatableTest extends FunctionalTestCase
 
         // The french translations have not been created so we cannot set it
         $category->setTitle($myFrText, $this->localeFr);
+        // TODO: we should have an exception instead of doing nothing
         $this->assertNull($category->getTitle($this->localeFr));
 
         // Same as above but this time we force the translation

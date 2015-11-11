@@ -304,11 +304,16 @@ abstract class AbstractTranslatable implements TranslatableInterface
      */
     public function getCurrentLocale()
     {
-        if ($this->curTranslation) {
+        if ($this->curTranslation !== null) {
             return $this->curTranslation->getI18nLocale();
         }
 
         return null;
+    }
+
+    public function resetCurrentLocale()
+    {
+        $this->curTranslation = null;
     }
 
     /**
@@ -328,6 +333,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
         if($lastParam && $lastParam instanceof Locale) {
             // If a locale is passed as last parameter, then use the associated translation
             $translation = $this->getTranslationObjectForLocale($lastParam);
+            array_pop($arguments); // Remove the last parameter as we just "consumed" it
         } else {
             // If the last param is a boolean and the previous one is a Locale then use the associated translation
             // forcing its creation if it does not exist
@@ -337,6 +343,9 @@ abstract class AbstractTranslatable implements TranslatableInterface
                 if (!$translation && $lastParam) {
                     $translation = $this->createTranslation($previousParam);
                 }
+                // Remove the two last parameters as we just "consumed" them
+                array_pop($arguments);
+                array_pop($arguments);
             }
         }
 
