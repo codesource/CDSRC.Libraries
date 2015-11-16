@@ -273,7 +273,7 @@ abstract class AbstractTranslation implements TranslationInterface
     {
         $_property = $this->sanitizeProperty($property);
         $this->$_property = $value;
-        return $this;
+        return $this->i18nParent;
     }
 
 }
