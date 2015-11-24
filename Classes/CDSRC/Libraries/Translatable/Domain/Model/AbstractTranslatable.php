@@ -55,16 +55,6 @@ abstract class AbstractTranslatable implements TranslatableInterface
     protected $fallbackOnTranslation = true;
 
     /**
-     * Store unannotated translatable fields
-     * Notice: if you override this field in child classes, this property has to be transient (otherwise an unneeded
-     * field will be created in the DB).
-     *
-     * @Flow\Transient
-     * @var array
-     */
-    protected $translatableFields = array();
-
-    /**
      * List of translations
      *
      * @var \Doctrine\Common\Collections\Collection<\CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation>
@@ -260,22 +250,13 @@ abstract class AbstractTranslatable implements TranslatableInterface
 
     /**
      * Return unannotated translatable fields
+     * NOTICE: This function should be override in sub classes if needed.
      *
      * @return array
      */
-    public function getTranslatableFields()
+    public static function getTranslatableFields()
     {
-        return $this->translatableFields;
-    }
-
-    /**
-     * Set the translatable fields.
-     *
-     * @param array $fields The name of the translatable fields
-     */
-    public function setTranslatableFields($fields)
-    {
-        $this->translatableFields = $fields;
+        return array();
     }
 
     /**

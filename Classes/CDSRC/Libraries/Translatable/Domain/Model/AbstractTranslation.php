@@ -106,7 +106,7 @@ abstract class AbstractTranslation implements TranslationInterface
      * @param \TYPO3\Flow\I18n\Locale|string $i18nLocale
      * @param string $parentClassName
      */
-    public function __construct($i18nLocale, $parentClassName = '')
+    public function __construct($i18nLocale, $parentClassName = null)
     {
         $this->setI18nLocale($i18nLocale);
         $this->parentClassName = $parentClassName;
@@ -215,8 +215,15 @@ abstract class AbstractTranslation implements TranslationInterface
     protected function sanitizeProperty($property)
     {
         $_property = lcfirst($property);
-        if ($this->parentClassName === null && !isset($this->i18nParent)) {
-            $this->parentClassName = get_class($this->i18nParent);
+        if ($this->parentClassName === null) {
+            if(isset($this->i18nParent)) {
+                $this->parentClassName = get_class($this->i18nParent);
+            }else{
+                $parentClassName = substr(get_called_class(), 0, -11);
+                if(class_exists($parentClassName)){
+                    $this->parentClassName = $parentClassName;
+                }
+            }
         }
 
         if (strlen($this->parentClassName) <= 0) {
@@ -227,13 +234,13 @@ abstract class AbstractTranslation implements TranslationInterface
             return $_property;
         }
 
-        if(isset($this->i18nParent) && in_array($_property, $this->i18nParent->getTranslatableFields())){
+        if (in_array($_property, call_user_func($this->parentClassName . '::getTranslatableFields'))){
             self::$propertiesCheckCache[$this->parentClassName][] = $_property;
             return $_property;
         }
 
         if (!property_exists($this->parentClassName, $_property)) {
-            throw new InvalidPropertyException($_property . ' do not exists in ' . $this->parentClassName, 1428243278);
+            throw new InvalidPropertyException($_property . ' do not exists or is not present in "translatableFields" in ' . $this->parentClassName, 1428243278);
         }
 
         $annotation = $this->reflectionService->getPropertyAnnotation($this->parentClassName, $_property, 'CDSRC\\Libraries\\Translatable\\Annotations\\Translatable');
