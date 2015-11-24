@@ -87,6 +87,8 @@ class TranslatableAspect
             if (is_array($rawValue) && !isset($rawValue['translations'])) {
                 $translationClassName = $this->getTranslationTable($argument->getDataType());
                 if ($translationClassName instanceof GenericTranslation) {
+                    // TODO: Implement generic version
+                    throw \Exception('NOT IMPLEMENTED');
                 } else {
                     $finalValue = array();
                     $translationProperties = $this->getTranslationProperties($translationClassName);
