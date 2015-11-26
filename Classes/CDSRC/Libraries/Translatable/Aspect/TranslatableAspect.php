@@ -33,6 +33,9 @@ use TYPO3\Flow\Error\Result;
 use TYPO3\Flow\Mvc\Controller\Argument;
 use TYPO3\Flow\Mvc\Controller\MvcPropertyMappingConfiguration;
 use TYPO3\Flow\Reflection\ReflectionService;
+use TYPO3\Flow\Validation\Validator\AbstractCompositeValidator;
+use TYPO3\Flow\Validation\Validator\ConjunctionValidator;
+use TYPO3\Flow\Validation\Validator\AbstractValidator;
 
 /**
  * An aspect which centralizes the logging of security relevant actions.
@@ -90,7 +93,7 @@ class TranslatableAspect
             $joinPoint->getAdviceChain()->proceed($joinPoint);
 
             // Update validation path
-            // TODO: Implement validation property path redefinition
+            $this->updateValidationPaths($joinPoint, $translations);
         } else {
             $joinPoint->getAdviceChain()->proceed($joinPoint);
         }
@@ -130,6 +133,73 @@ class TranslatableAspect
             $joinPoint->setMethodArgument('rawValue', $rawValue);
         }
         return $translations;
+    }
+
+    /**
+     * Update validation result paths for arguments
+     *
+     * @param \TYPO3\Flow\Aop\JoinPointInterface $joinPoint
+     * @param array $translations
+     *
+     * @return void
+     */
+    protected function updateValidationPaths(JoinPointInterface &$joinPoint, array $translations)
+    {
+        /** @var Argument $argument */
+        $argument = $joinPoint->getProxy();
+        /** @var Result $argumentValidationResults */
+        $argumentValidationResults = $argument->getValidationResults();
+
+        $translationsValidationResults = $argumentValidationResults->forProperty('translations');
+        if($translationsValidationResults->hasMessages()){
+            $flattenedErrors = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedErrors());
+            $flattenedNotices = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedNotices());
+            $flattenedWarnings = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedWarnings());
+            $index = 0;
+            foreach($translations as $language => $translation){
+                foreach($translation as $property => $value){
+                    $propertyPath = $index . '.' . $property;
+                    $result = new Result();
+                    if(isset($flattenedErrors[$propertyPath]) && is_array($flattenedErrors[$propertyPath])){
+                        foreach($flattenedErrors[$propertyPath] as $error) {
+                            $result->addError($error);
+                        }
+                    }
+                    if(isset($flattenedNotices[$propertyPath]) && is_array($flattenedNotices[$propertyPath])){
+                        foreach($flattenedNotices[$propertyPath] as $notice) {
+                            $result->addNotice($notice);
+                        }
+                    }
+                    if(isset($flattenedWarnings[$propertyPath]) && is_array($flattenedWarnings[$propertyPath])){
+                        foreach($flattenedWarnings[$propertyPath] as $warning) {
+                            $result->addWarning($warning);
+                        }
+                    }
+                    if($result->hasMessages()) {
+                        $argumentValidationResults->forProperty($property . '.' . $language)->merge($result);
+                    }
+                }
+                $index++;
+            }
+        }
+    }
+
+    /**
+     * Sanitize validation results and search for sub validations results
+     *
+     * @param array $flattenedMessages
+     *
+     * @return array
+     */
+    protected function sanitizeValidationResultsPropertyKeys(array $flattenedMessages){
+        $sanitizedFlattenedMessages = array();
+        foreach($flattenedMessages as $key => $message){
+            if(($index = strrpos($key, '.translations.')) !== FALSE){
+                $key = substr($key, $index + 14);
+            }
+            $sanitizedFlattenedMessages[$key] = $message;
+        }
+        return $sanitizedFlattenedMessages;
     }
 
     /**

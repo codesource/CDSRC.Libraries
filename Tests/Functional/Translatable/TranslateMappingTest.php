@@ -29,6 +29,7 @@ use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Generic;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Specific;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\CategoryRepository;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\EntityRepository;
+use TYPO3\Flow\Error\Result;
 use TYPO3\Flow\I18n\Locale;
 use TYPO3\Flow\Mvc\Controller\Argument;
 use TYPO3\Flow\Persistence\Doctrine\PersistenceManager;
@@ -46,6 +47,11 @@ class TranslateMappingTest extends FunctionalTestCase
      * @var boolean
      */
     static protected $testablePersistenceEnabled = true;
+
+    /**
+     * @var \TYPO3\Flow\Validation\ValidatorResolver
+     */
+    protected $validatorResolver;
 
     /**
      *
@@ -75,6 +81,7 @@ class TranslateMappingTest extends FunctionalTestCase
             $this->markTestSkipped('Doctrine persistence is not enabled');
         }
         $this->propertyMapper = $this->objectManager->get('TYPO3\Flow\Property\PropertyMapper');
+        $this->validatorResolver = $this->objectManager->get('TYPO3\Flow\Validation\ValidatorResolver');
 
         $this->localeDe = new Locale('de-CH');
         $this->localeFr = new Locale('fr-CH');
@@ -82,40 +89,121 @@ class TranslateMappingTest extends FunctionalTestCase
         $this->localeIt = new Locale('it-IT');
     }
 
+//    /**
+//     * @test
+//     */
+//    public function testMappingMagic(){
+//        $deTitle = 'Title DE';
+//        $frTitle = 'Title FR';
+//        $enTitle = 'Title EN';
+//        $itTitle = 'Title IT';
+//        $data = array(
+//            (string)$this->localeDe => array(
+//                $this->localeDe,
+//                $deTitle
+//            ),
+//            (string)$this->localeFr => array(
+//                $this->localeFr,
+//                $frTitle
+//            ),
+//            (string)$this->localeEn => array(
+//                $this->localeEn,
+//                $enTitle
+//            ),
+//            (string)$this->localeIt => array(
+//                $this->localeIt,
+//                $itTitle
+//            ),
+//        );
+//        $category = array(
+//            'icon' => 'test',
+//            'color' => '#ffffff',
+//            'title' => array(
+//                (string)$this->localeDe => $deTitle,
+//                (string)$this->localeFr => $frTitle,
+//                (string)$this->localeEn => $enTitle,
+//                (string)$this->localeIt => $itTitle,
+//            )
+//        );
+//        $argument = new Argument('category', \CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Category::class);
+//        $argument->setRequired(true);
+//
+//        $propertyMappingConfiguration = $argument->getPropertyMappingConfiguration();
+//        $propertyMappingConfiguration->allowAllProperties('icon', 'color');
+//        $propertyMappingConfiguration->setTypeConverterOption('TYPO3\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
+//
+//        $argument->setValue($category);
+//
+//        /** @var Category $categoryObject */
+//        $categoryObject = $argument->getValue();
+//
+//        foreach($data as $localeAndTitle){
+//            $translation = $categoryObject->getTranslationByLocale($localeAndTitle[0], false);
+//            $this->assertNotNull($translation);
+//            if($translation){
+//                $this->assertEquals($localeAndTitle[1], $translation->getTitle());
+//            }
+//        }
+//    }
+//
+//    /**
+//     * @test
+//     */
+//    public function testMappingExistingTranslation(){
+//        $category = new Category();
+//        $category->setColor('#cccccc');
+//        $category->setIcon('none');
+//        $category->setCurrentLocale($this->localeEn, true)->setTitle('Title EN saved');
+//        $category->setCurrentLocale($this->localeFr, true)->setTitle('Title FR saved');
+//
+//        $repo = new CategoryRepository();
+//        $repo->add($category);
+//        $this->persistenceManager->persistAll();
+//        $this->persistenceManager->clearState();
+//
+//        $this->assertEquals(2, $category->getTranslations()->count());
+//
+//        $data = array(
+//            '__identity' => $this->persistenceManager->getIdentifierByObject($category),
+//            'icon' => 'new icon',
+//            'color' => 'black',
+//            'title' => array(
+//                (string)$this->localeEn => 'Title EN updated',
+//                (string)$this->localeDe => 'Title DE new',
+//            )
+//        );
+//
+//        $argument = new Argument('category', \CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Category::class);
+//        $argument->setRequired(true);
+//
+//        $propertyMappingConfiguration = $argument->getPropertyMappingConfiguration();
+//        $propertyMappingConfiguration->allowAllProperties('icon', 'color');
+//        $propertyMappingConfiguration->setTypeConverterOption('TYPO3\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);
+//
+//        $argument->setValue($data);
+//
+//        /** @var Category $updatedCategory */
+//        $updatedCategory = $argument->getValue();
+//
+//        $this->assertEquals(2, $updatedCategory->getTranslations()->count());
+//
+//        $this->assertEquals('Title EN updated', $updatedCategory->setCurrentLocale($this->localeEn)->getTitle());
+//        $this->assertNull($updatedCategory->setCurrentLocale($this->localeFr)->getCurrentLocale());
+//        $this->assertEquals('Title DE new', $updatedCategory->setCurrentLocale($this->localeDe)->getTitle());
+//    }
+
     /**
      * @test
      */
-    public function testMappingMagic(){
-        $deTitle = 'Title DE';
-        $frTitle = 'Title FR';
-        $enTitle = 'Title EN';
-        $itTitle = 'Title IT';
-        $data = array(
-            (string)$this->localeDe => array(
-                $this->localeDe,
-                $deTitle
-            ),
-            (string)$this->localeFr => array(
-                $this->localeFr,
-                $frTitle
-            ),
-            (string)$this->localeEn => array(
-                $this->localeEn,
-                $enTitle
-            ),
-            (string)$this->localeIt => array(
-                $this->localeIt,
-                $itTitle
-            ),
-        );
+    public function testValidationResultRewriting(){
         $category = array(
             'icon' => 'test',
             'color' => '#ffffff',
             'title' => array(
-                (string)$this->localeDe => $deTitle,
-                (string)$this->localeFr => $frTitle,
-                (string)$this->localeEn => $enTitle,
-                (string)$this->localeIt => $itTitle,
+                (string)$this->localeDe => str_repeat('x', 201),
+                (string)$this->localeFr => str_repeat('x', 200),
+                (string)$this->localeEn => str_repeat('x', 20),
+                (string)$this->localeIt => '',
             )
         );
         $argument = new Argument('category', \CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Category::class);
@@ -125,63 +213,21 @@ class TranslateMappingTest extends FunctionalTestCase
         $propertyMappingConfiguration->allowAllProperties('icon', 'color');
         $propertyMappingConfiguration->setTypeConverterOption('TYPO3\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
 
+        $argument->setValidator($this->validatorResolver->getBaseValidatorConjunction($argument->getDataType()));
+
         $argument->setValue($category);
 
-        /** @var Category $categoryObject */
-        $categoryObject = $argument->getValue();
+        /** @var Result $validationResults */
+        $validationResults = $argument->getValidationResults();
 
-        foreach($data as $localeAndTitle){
-            $translation = $categoryObject->getTranslationByLocale($localeAndTitle[0], false);
-            $this->assertNotNull($translation);
-            if($translation){
-                $this->assertEquals($localeAndTitle[1], $translation->getTitle());
-            }
-        }
-    }
+        $this->assertTrue($validationResults->hasMessages());
 
-    /**
-     * @test
-     */
-    public function testMappingExistingTranslation(){
-        $category = new Category();
-        $category->setColor('#cccccc');
-        $category->setIcon('none');
-        $category->setCurrentLocale($this->localeEn, true)->setTitle('Title EN saved');
-        $category->setCurrentLocale($this->localeFr, true)->setTitle('Title FR saved');
+        $this->assertTrue($validationResults->forProperty('title.'.(string)$this->localeDe)->hasErrors());
+        $this->assertFalse($validationResults->forProperty('title.'.(string)$this->localeFr)->hasErrors());
+        $this->assertFalse($validationResults->forProperty('title.'.(string)$this->localeEn)->hasErrors());
+        $this->assertTrue($validationResults->forProperty('title.'.(string)$this->localeIt)->hasErrors());
 
-        $repo = new CategoryRepository();
-        $repo->add($category);
-        $this->persistenceManager->persistAll();
-        $this->persistenceManager->clearState();
-
-        $this->assertEquals(2, $category->getTranslations()->count());
-
-        $data = array(
-            '__identity' => $this->persistenceManager->getIdentifierByObject($category),
-            'icon' => 'new icon',
-            'color' => 'black',
-            'title' => array(
-                (string)$this->localeEn => 'Title EN updated',
-                (string)$this->localeDe => 'Title DE new',
-            )
-        );
-
-        $argument = new Argument('category', \CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Category::class);
-        $argument->setRequired(true);
-
-        $propertyMappingConfiguration = $argument->getPropertyMappingConfiguration();
-        $propertyMappingConfiguration->allowAllProperties('icon', 'color');
-        $propertyMappingConfiguration->setTypeConverterOption('TYPO3\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);
-
-        $argument->setValue($data);
-
-        /** @var Category $updatedCategory */
-        $updatedCategory = $argument->getValue();
-
-        $this->assertEquals(2, $updatedCategory->getTranslations()->count());
-
-        $this->assertEquals('Title EN updated', $updatedCategory->setCurrentLocale($this->localeEn)->getTitle());
-        $this->assertNull($updatedCategory->setCurrentLocale($this->localeFr)->getCurrentLocale());
-        $this->assertEquals('Title DE new', $updatedCategory->setCurrentLocale($this->localeDe)->getTitle());
+        $this->assertEquals('This text may not exceed %1$d characters.', $validationResults->forProperty('title.'.(string)$this->localeDe)->getFirstError()->getMessage());
+        $this->assertEquals('This property is required.', $validationResults->forProperty('title.'.(string)$this->localeIt)->getFirstError()->getMessage());
     }
 }

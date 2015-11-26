@@ -12,6 +12,8 @@ class CategoryTranslation extends AbstractTranslation
 {
     /**
      * @var string
+     * @Flow\Validate(type="NotEmpty")
+     * @Flow\Validate(type="StringLength", options={"maximum"=200})
      */
     protected $title;
 }
