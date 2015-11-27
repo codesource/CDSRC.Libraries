@@ -19,7 +19,10 @@ class Category extends AbstractTranslatable
 {
     use TimestampableTrait;
 
-	/** @var string */
+	/**
+	 * @var string
+	 * @Flow\Validate(type="NotEmpty")
+	 */
 	protected $color;
 
 	/** @var string */
