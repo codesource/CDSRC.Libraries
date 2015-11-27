@@ -55,16 +55,6 @@ abstract class AbstractTranslatable implements TranslatableInterface
     protected $fallbackOnTranslation = true;
 
     /**
-     * Store unannotated translatable fields
-     * Notice: if you override this field in child classes, this property has to be transient (otherwise an unneeded
-     * field will be created in the DB).
-     *
-     * @Flow\Transient
-     * @var array
-     */
-    protected $translatableFields = array();
-
-    /**
      * List of translations
      *
      * @var \Doctrine\Common\Collections\Collection<\CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation>
@@ -137,7 +127,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
      */
     public function hasTranslationForLocale(Locale $locale)
     {
-        return $this->getTranslationObjectForLocale($locale) !== false;
+        return $this->getTranslationObjectForLocale($locale) !== null;
     }
 
     /**
@@ -164,12 +154,12 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @param Locale $locale
      * @param bool $forceCreation
-     * @return bool|TranslationInterface
+     * @return null|TranslationInterface
      */
     public function getTranslationByLocale(Locale $locale, $forceCreation = false)
     {
         $translation = $this->getTranslationObjectForLocale($locale);
-        if ($translation) {
+        if ($translation !== null) {
             return $translation;
         }
 
@@ -206,7 +196,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
     public function removeTranslationByLocale(Locale $locale)
     {
         $translation = $this->getTranslationObjectForLocale($locale);
-        if ($translation) {
+        if ($translation !== null) {
             $this->translations->removeElement($translation);
         }
 
@@ -260,22 +250,13 @@ abstract class AbstractTranslatable implements TranslatableInterface
 
     /**
      * Return unannotated translatable fields
+     * NOTICE: This function should be override in sub classes if needed.
      *
      * @return array
      */
-    public function getTranslatableFields()
+    public static function getTranslatableFields()
     {
-        return $this->translatableFields;
-    }
-
-    /**
-     * Set the translatable fields.
-     *
-     * @param array $fields The name of the translatable fields
-     */
-    public function setTranslatableFields($fields)
-    {
-        $this->translatableFields = $fields;
+        return array();
     }
 
     /**
@@ -290,7 +271,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
     {
         $this->curTranslation = $this->getTranslationObjectForLocale($locale);
 
-        if(false === $this->curTranslation && $forceCreation){
+        if($this->curTranslation === null && $forceCreation){
             $this->curTranslation = $this->createTranslation($locale);
         }
 
@@ -340,7 +321,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
             $previousParam = prev($arguments);
             if (is_bool($lastParam) && $previousParam instanceof Locale) {
                 $translation = $this->getTranslationObjectForLocale($previousParam);
-                if (!$translation && $lastParam) {
+                if ($translation === null && $lastParam) {
                     $translation = $this->createTranslation($previousParam);
                 }
                 // Remove the two last parameters as we just "consumed" them
@@ -349,7 +330,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
             }
         }
 
-        if (!$translation) {
+        if ($translation === null) {
             return null;
         }
 
@@ -360,7 +341,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
      * Go through all the translation objects and return the one that matches the given locale or false if none were found.
      *
      * @param Locale $locale
-     * @return bool|TranslationInterface
+     * @return null|TranslationInterface
      */
     protected function getTranslationObjectForLocale(Locale $locale)
     {
@@ -372,7 +353,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
             }
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -384,7 +365,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
     protected function createTranslation(Locale $locale)
     {
         $translation = $this->getTranslationObjectForLocale($locale);
-        if (!$translation) {
+        if ($translation === null) {
             $translationClassName = $this->getTranslationClassName();
             $translation = new $translationClassName($locale);
             $this->addTranslation($translation);

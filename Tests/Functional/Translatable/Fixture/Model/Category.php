@@ -35,7 +35,6 @@ class Category extends AbstractTranslatable
     public function __construct()
     {
         parent::__construct();
-        $this->setTranslatableFields(array('title'));
     }
 
     /** @return string */
@@ -79,4 +78,14 @@ class Category extends AbstractTranslatable
         $this->isActive = $isActive;
         return $this;
     }
+
+	/**
+	 * Return unannotated translatable fields
+	 *
+	 * @return array
+	 */
+	public static function getTranslatableFields()
+	{
+		return array('title');
+	}
 }
