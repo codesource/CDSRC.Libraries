@@ -24,12 +24,14 @@ namespace CDSRC\Libraries\Translatable\Aspect;
  *
  * ******************************************************************** */
 
+use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;
 use CDSRC\Libraries\Translatable\Domain\Model\GenericTranslation;
 use CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface;
 use Doctrine\ORM\Query;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Aop\JoinPointInterface;
 use TYPO3\Flow\Error\Result;
+use TYPO3\Flow\I18n\Locale;
 use TYPO3\Flow\Mvc\Controller\Argument;
 use TYPO3\Flow\Mvc\Controller\MvcPropertyMappingConfiguration;
 use TYPO3\Flow\Reflection\ReflectionService;
@@ -155,31 +157,36 @@ class TranslatableAspect
             $flattenedErrors = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedErrors());
             $flattenedNotices = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedNotices());
             $flattenedWarnings = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedWarnings());
-            $index = 0;
+            $this->overrideArgumentValidationResults($argument, $flattenedErrors, $flattenedNotices, $flattenedWarnings);
+            /** @var AbstractTranslatable $translatableObject */
+            $translatableObject = $argument->getValue();
             foreach($translations as $language => $translation){
-                foreach($translation as $property => $value){
-                    $propertyPath = $index . '.' . $property;
-                    $result = new Result();
-                    if(isset($flattenedErrors[$propertyPath]) && is_array($flattenedErrors[$propertyPath])){
-                        foreach($flattenedErrors[$propertyPath] as $error) {
-                            $result->addError($error);
+                $translationObject = $translatableObject->getTranslationByLocale(new Locale($language));
+                if($translatableObject !== null) {
+                    $index = $translatableObject->getTranslations()->indexOf($translationObject);
+                    foreach ($translation as $property => $value) {
+                        $propertyPath = $index . '.' . $property;
+                        $result = new Result();
+                        if (isset($flattenedErrors[$propertyPath]) && is_array($flattenedErrors[$propertyPath])) {
+                            foreach ($flattenedErrors[$propertyPath] as $error) {
+                                $result->addError($error);
+                            }
                         }
-                    }
-                    if(isset($flattenedNotices[$propertyPath]) && is_array($flattenedNotices[$propertyPath])){
-                        foreach($flattenedNotices[$propertyPath] as $notice) {
-                            $result->addNotice($notice);
+                        if (isset($flattenedNotices[$propertyPath]) && is_array($flattenedNotices[$propertyPath])) {
+                            foreach ($flattenedNotices[$propertyPath] as $notice) {
+                                $result->addNotice($notice);
+                            }
                         }
-                    }
-                    if(isset($flattenedWarnings[$propertyPath]) && is_array($flattenedWarnings[$propertyPath])){
-                        foreach($flattenedWarnings[$propertyPath] as $warning) {
-                            $result->addWarning($warning);
+                        if (isset($flattenedWarnings[$propertyPath]) && is_array($flattenedWarnings[$propertyPath])) {
+                            foreach ($flattenedWarnings[$propertyPath] as $warning) {
+                                $result->addWarning($warning);
+                            }
                         }
-                    }
-                    if($result->hasMessages()) {
-                        $argumentValidationResults->forProperty($property . '.' . $language)->merge($result);
+                        if ($result->hasMessages()) {
+                            $argumentValidationResults->forProperty($property . '.' . $language)->merge($result);
+                        }
                     }
                 }
-                $index++;
             }
         }
     }
@@ -203,7 +210,42 @@ class TranslatableAspect
     }
 
     /**
+     * Override existing argument validation results
+     *
+     * @param \TYPO3\Flow\Mvc\Controller\Argument $argument
+     * @param array $flattenedErrors
+     * @param array $flattenedNotices
+     * @param array $flattenedWarnings
+     *
+     * @return void
+     */
+    protected function overrideArgumentValidationResults(Argument $argument, array $flattenedErrors, array $flattenedNotices, array $flattenedWarnings){
+        $validationResults = new Result();
+        foreach($flattenedErrors as $propertyPath => $errors){
+            foreach($errors as $error) {
+                $validationResults->forProperty($propertyPath)->addError($error);
+            }
+        }
+        foreach($flattenedNotices as $propertyPath => $notices){
+            foreach($notices as $notice) {
+                $validationResults->forProperty($propertyPath)->addNotice($notice);
+            }
+        }
+        foreach($flattenedWarnings as $propertyPath => $warnings){
+            foreach($warnings as $warning) {
+                $validationResults->forProperty($propertyPath)->addError($warning);
+            }
+        }
+        $validationResultsProperty = new \ReflectionProperty(Argument::class, 'validationResults');
+        $validationResultsProperty->setAccessible(true);
+        $validationResultsProperty->setValue($argument, $validationResults);
+
+    }
+
+    /**
      * @param string $className
+     *
+     * @return string
      */
     protected function getTranslationTable($className)
     {
@@ -325,7 +367,7 @@ class TranslatableAspect
      * @param $parentIdentifier
      * @param string $identifierPropertyName
      *
-     * @return mixed
+     * @return array
      */
     protected function findTranslationsIdentifiersAndLocale($className, $parentIdentifier, $identifierPropertyName = 'Persistence_Object_Identifier')
     {
