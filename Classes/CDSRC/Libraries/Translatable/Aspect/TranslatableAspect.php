@@ -35,9 +35,6 @@ use TYPO3\Flow\I18n\Locale;
 use TYPO3\Flow\Mvc\Controller\Argument;
 use TYPO3\Flow\Mvc\Controller\MvcPropertyMappingConfiguration;
 use TYPO3\Flow\Reflection\ReflectionService;
-use TYPO3\Flow\Validation\Validator\AbstractCompositeValidator;
-use TYPO3\Flow\Validation\Validator\ConjunctionValidator;
-use TYPO3\Flow\Validation\Validator\AbstractValidator;
 
 /**
  * An aspect which centralizes the logging of security relevant actions.
@@ -134,112 +131,8 @@ class TranslatableAspect
             }
             $joinPoint->setMethodArgument('rawValue', $rawValue);
         }
+
         return $translations;
-    }
-
-    /**
-     * Update validation result paths for arguments
-     *
-     * @param \TYPO3\Flow\Aop\JoinPointInterface $joinPoint
-     * @param array $translations
-     *
-     * @return void
-     */
-    protected function updateValidationPaths(JoinPointInterface &$joinPoint, array $translations)
-    {
-        /** @var Argument $argument */
-        $argument = $joinPoint->getProxy();
-        /** @var Result $argumentValidationResults */
-        $argumentValidationResults = $argument->getValidationResults();
-
-        $translationsValidationResults = $argumentValidationResults->forProperty('translations');
-        if($translationsValidationResults->hasMessages()){
-            $flattenedErrors = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedErrors());
-            $flattenedNotices = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedNotices());
-            $flattenedWarnings = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedWarnings());
-            $this->overrideArgumentValidationResults($argument, $flattenedErrors, $flattenedNotices, $flattenedWarnings);
-            /** @var AbstractTranslatable $translatableObject */
-            $translatableObject = $argument->getValue();
-            foreach($translations as $language => $translation){
-                $translationObject = $translatableObject->getTranslationByLocale(new Locale($language));
-                if($translatableObject !== null) {
-                    $index = $translatableObject->getTranslations()->indexOf($translationObject);
-                    foreach ($translation as $property => $value) {
-                        $propertyPath = $index . '.' . $property;
-                        $result = new Result();
-                        if (isset($flattenedErrors[$propertyPath]) && is_array($flattenedErrors[$propertyPath])) {
-                            foreach ($flattenedErrors[$propertyPath] as $error) {
-                                $result->addError($error);
-                            }
-                        }
-                        if (isset($flattenedNotices[$propertyPath]) && is_array($flattenedNotices[$propertyPath])) {
-                            foreach ($flattenedNotices[$propertyPath] as $notice) {
-                                $result->addNotice($notice);
-                            }
-                        }
-                        if (isset($flattenedWarnings[$propertyPath]) && is_array($flattenedWarnings[$propertyPath])) {
-                            foreach ($flattenedWarnings[$propertyPath] as $warning) {
-                                $result->addWarning($warning);
-                            }
-                        }
-                        if ($result->hasMessages()) {
-                            $argumentValidationResults->forProperty($property . '.' . $language)->merge($result);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Sanitize validation results and search for sub validations results
-     *
-     * @param array $flattenedMessages
-     *
-     * @return array
-     */
-    protected function sanitizeValidationResultsPropertyKeys(array $flattenedMessages){
-        $sanitizedFlattenedMessages = array();
-        foreach($flattenedMessages as $key => $message){
-            if(($index = strrpos($key, '.translations.')) !== FALSE){
-                $key = substr($key, $index + 14);
-            }
-            $sanitizedFlattenedMessages[$key] = $message;
-        }
-        return $sanitizedFlattenedMessages;
-    }
-
-    /**
-     * Override existing argument validation results
-     *
-     * @param \TYPO3\Flow\Mvc\Controller\Argument $argument
-     * @param array $flattenedErrors
-     * @param array $flattenedNotices
-     * @param array $flattenedWarnings
-     *
-     * @return void
-     */
-    protected function overrideArgumentValidationResults(Argument $argument, array $flattenedErrors, array $flattenedNotices, array $flattenedWarnings){
-        $validationResults = new Result();
-        foreach($flattenedErrors as $propertyPath => $errors){
-            foreach($errors as $error) {
-                $validationResults->forProperty($propertyPath)->addError($error);
-            }
-        }
-        foreach($flattenedNotices as $propertyPath => $notices){
-            foreach($notices as $notice) {
-                $validationResults->forProperty($propertyPath)->addNotice($notice);
-            }
-        }
-        foreach($flattenedWarnings as $propertyPath => $warnings){
-            foreach($warnings as $warning) {
-                $validationResults->forProperty($propertyPath)->addError($warning);
-            }
-        }
-        $validationResultsProperty = new \ReflectionProperty(Argument::class, 'validationResults');
-        $validationResultsProperty->setAccessible(true);
-        $validationResultsProperty->setValue($argument, $validationResults);
-
     }
 
     /**
@@ -420,5 +313,99 @@ class TranslatableAspect
 
         // Allow all translation indexes
         call_user_func_array(array($propertyMappingConfiguration->forProperty('translations'), 'allowProperties'), array_keys($rawValue['translations']));
+    }
+
+    /**
+     * Update validation result paths for arguments
+     *
+     * @param \TYPO3\Flow\Aop\JoinPointInterface $joinPoint
+     * @param array $translations
+     *
+     * @return void
+     */
+    protected function updateValidationPaths(JoinPointInterface &$joinPoint, array $translations)
+    {
+        /** @var Argument $argument */
+        $argument = $joinPoint->getProxy();
+        /** @var Result $argumentValidationResults */
+        $argumentValidationResults = $argument->getValidationResults();
+
+        $translationsValidationResults = $argumentValidationResults->forProperty('translations');
+        if ($translationsValidationResults->hasMessages()) {
+            $flattenedErrors = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedErrors());
+            $flattenedNotices = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedNotices());
+            $flattenedWarnings = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedWarnings());
+            $this->overrideTranslationsArgumentValidationResults($argumentValidationResults);
+
+            /** @var AbstractTranslatable $translatableObject */
+            $translatableObject = $argument->getValue();
+            foreach ($translations as $language => $translation) {
+                $translationObject = $translatableObject->getTranslationByLocale(new Locale($language));
+                if ($translatableObject !== null) {
+                    $index = $translatableObject->getTranslations()->indexOf($translationObject);
+                    foreach ($translation as $property => $value) {
+                        $propertyPath = $index . '.' . $property;
+                        $result = new Result();
+                        if (isset($flattenedErrors[$propertyPath]) && is_array($flattenedErrors[$propertyPath])) {
+                            foreach ($flattenedErrors[$propertyPath] as $error) {
+                                $result->addError($error);
+                            }
+                        }
+                        if (isset($flattenedNotices[$propertyPath]) && is_array($flattenedNotices[$propertyPath])) {
+                            foreach ($flattenedNotices[$propertyPath] as $notice) {
+                                $result->addNotice($notice);
+                            }
+                        }
+                        if (isset($flattenedWarnings[$propertyPath]) && is_array($flattenedWarnings[$propertyPath])) {
+                            foreach ($flattenedWarnings[$propertyPath] as $warning) {
+                                $result->addWarning($warning);
+                            }
+                        }
+                        if ($result->hasMessages()) {
+                            $argumentValidationResults->forProperty($property . '.' . $language)->merge($result);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Sanitize validation results and search for sub validations results
+     *
+     * @param array $flattenedMessages
+     *
+     * @return array
+     */
+    protected function sanitizeValidationResultsPropertyKeys(array $flattenedMessages)
+    {
+        $sanitizedFlattenedMessages = array();
+        foreach ($flattenedMessages as $key => $message) {
+            if (($index = strrpos($key, '.translations.')) !== false) {
+                $key = substr($key, $index + 14);
+            }
+            $sanitizedFlattenedMessages[$key] = $message;
+        }
+
+        return $sanitizedFlattenedMessages;
+    }
+
+    /**
+     * Override existing translations argument validation results
+     *
+     * @param Result $argumentValidationResults
+     *
+     * @return void
+     */
+    protected function overrideTranslationsArgumentValidationResults(Result $argumentValidationResults)
+    {
+        $validationResultsProperty = new \ReflectionProperty(Result::class, 'propertyResults');
+        $validationResultsProperty->setAccessible(true);
+        $propertyResults = $validationResultsProperty->getValue($argumentValidationResults);
+        if (isset($propertyResults['translations'])) {
+            unset($propertyResults['translations']);
+        }
+        $validationResultsProperty->setValue($argumentValidationResults, $propertyResults);
+
     }
 }
