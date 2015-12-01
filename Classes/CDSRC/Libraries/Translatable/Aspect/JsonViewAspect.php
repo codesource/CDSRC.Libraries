@@ -49,26 +49,38 @@ class JsonViewAspect
     public function interceptTransformObject(JoinPointInterface $joinPoint)
     {
         $object = $joinPoint->getMethodArgument('object');
-        if (is_object($object) && $object instanceof AbstractTranslatable) {
-            $configuration = $joinPoint->getMethodArgument('configuration');
 
-            // Exclude by default translatable gettable property if no _exclude is defined
-            $defaultExcludedProperties = array('translationByLocale', 'currentLocale', 'fallbackOnTranslation', 'translationClassName', 'translationForLocale');
-            if (!isset($configuration['_exclude'])) {
-                $configuration['_exclude'] = $defaultExcludedProperties;
-                $joinPoint->setMethodArgument('configuration', $configuration);
-            } elseif (is_array($configuration['_exclude']) && in_array('_translation', $configuration['_exclude'])) {
-                $configuration['_exclude'] = array_merge($configuration['_exclude'], $defaultExcludedProperties);
-                $joinPoint->setMethodArgument('configuration', $configuration);
-            }
-
-            $propertiesToRender = $joinPoint->getAdviceChain()->proceed($joinPoint);
-            $translatablePropertiesToRender = $this->transformTranslatableObject($object, $configuration, $joinPoint->getProxy());
-
-            return array_merge($propertiesToRender, $translatablePropertiesToRender);
-        } else {
+        if (!is_object($object) || !$object instanceof AbstractTranslatable) {
             return $joinPoint->getAdviceChain()->proceed($joinPoint);
         }
+
+        $configuration = $joinPoint->getMethodArgument('configuration');
+
+        $defaultExcludedProperties = array(
+            'translationByLocale',
+            'currentLocale',
+            'fallbackOnTranslation',
+            'translationClassName',
+            'translationForLocale'
+        );
+
+        if (!isset($configuration['_exclude'])) {
+            // Exclude by default translatable gettable property if no _exclude is defined
+            $configuration['_exclude'] = $defaultExcludedProperties;
+        } elseif (is_array($configuration['_exclude']) && in_array('_translation', $configuration['_exclude'])) {
+            // Exclude translatable gettable properties if _translation is present in the excluded properties
+            $configuration['_exclude'] = array_merge($configuration['_exclude'], $defaultExcludedProperties);
+        }
+        $joinPoint->setMethodArgument('configuration', $configuration);
+
+        $propertiesToRender = $joinPoint->getAdviceChain()->proceed($joinPoint);
+        $translatablePropertiesToRender = $this->transformTranslatableObject(
+            $object,
+            $configuration,
+            $joinPoint->getProxy()
+        );
+
+        return array_merge($propertiesToRender, $translatablePropertiesToRender);
     }
 
     /**
@@ -89,22 +101,30 @@ class JsonViewAspect
 
         $propertiesToRender = array();
         foreach ($additionalPropertyNames as $propertyName) {
-            if (isset($configuration['_only']) && is_array($configuration['_only']) && !in_array($propertyName, $configuration['_only'])) {
+            if (isset($configuration['_only'])
+                && is_array($configuration['_only'])
+                && !in_array($propertyName, $configuration['_only'])) {
                 continue;
             }
-            if (isset($configuration['_exclude']) && is_array($configuration['_exclude']) && in_array($propertyName, $configuration['_exclude'])) {
+            if (isset($configuration['_exclude'])
+                && is_array($configuration['_exclude'])
+                && in_array($propertyName, $configuration['_exclude'])) {
                 continue;
             }
             $getter = 'get' . ucfirst($propertyName);
 
             $translations = $object->getTranslations();
-            if(count($translations) > 0) {
+            if (count($translations) > 0) {
                 $propertiesToRender[$propertyName] = array();
                 /** @var AbstractTranslation $translation */
                 foreach ($translations as $translation) {
                     $propertyValue = $translation->$getter();
                     if (is_array($propertyValue) || is_object($propertyValue)) {
-                        $propertyValue = $this->transformValue($propertyValue, $configuration['_descend'][$propertyName], $view);
+                        $propertyValue = $this->transformValue(
+                            $propertyValue,
+                            $configuration['_descend'][$propertyName],
+                            $view
+                        );
                     }
                     $propertiesToRender[$propertyName][(string)$translation->getI18nLocale()] = $propertyValue;
                 }
