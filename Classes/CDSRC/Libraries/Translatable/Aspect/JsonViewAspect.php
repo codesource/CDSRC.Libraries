@@ -57,7 +57,6 @@ class JsonViewAspect
         $configuration = $joinPoint->getMethodArgument('configuration');
 
         $defaultExcludedProperties = array(
-            'translationByLocale',
             'currentLocale',
             'fallbackOnTranslation',
             'translationClassName',
@@ -71,6 +70,8 @@ class JsonViewAspect
             // Exclude translatable gettable properties if _translation is present in the excluded properties
             $configuration['_exclude'] = array_merge($configuration['_exclude'], $defaultExcludedProperties);
         }
+        // Prevent call of getter with required arguments
+        $configuration['_exclude'] = array_merge($configuration['_exclude'], array('translationByLocale'));
         $joinPoint->setMethodArgument('configuration', $configuration);
 
         $propertiesToRender = $joinPoint->getAdviceChain()->proceed($joinPoint);
