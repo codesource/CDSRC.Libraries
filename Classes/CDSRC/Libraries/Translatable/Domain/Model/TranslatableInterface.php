@@ -110,4 +110,12 @@ interface TranslatableInterface
      * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
      */
     public function setFallbackOnTranslation($fallback);
+
+
+    /**
+     * Return unannotated translatable fields
+     *
+     * @return array
+     */
+    public static function getTranslatableFields();
 }
