@@ -37,6 +37,7 @@ use TYPO3\Flow\Property\Exception\InvalidPropertyException;
  *
  * @Flow\Entity
  * @ORM\InheritanceType("JOINED")
+ * @ORM\Table(name="cdsrc_libraries_trsl_abstracttranslation")
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */

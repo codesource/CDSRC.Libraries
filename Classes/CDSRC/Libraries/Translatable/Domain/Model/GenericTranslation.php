@@ -30,6 +30,7 @@ use TYPO3\Flow\Annotations as Flow;
 
 /**
  * @Flow\Entity
+ * @ORM\Table(name="cdsrc_libraries_trsl_generictranslation")
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
