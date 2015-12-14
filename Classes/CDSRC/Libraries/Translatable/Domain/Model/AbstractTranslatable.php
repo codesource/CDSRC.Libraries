@@ -33,6 +33,7 @@ use TYPO3\Flow\I18n\Locale;
  *
  * @Flow\Entity
  * @ORM\InheritanceType("JOINED")
+ * @ORM\Table(name="cdsrc_libraries_trsl_abstracttranslatable")
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
