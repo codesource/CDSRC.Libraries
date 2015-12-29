@@ -30,6 +30,7 @@ use TYPO3\Flow\Property\Exception\InvalidPropertyException;
 
 /**
  * @Flow\Entity
+ * @ORM\Table(name="cdsrc_libraries_trsl_generictranslationfield")
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
