@@ -87,6 +87,13 @@ interface TranslatableInterface
     public function getTranslations();
 
     /**
+     * Get translation class name
+     *
+     * @return string
+     */
+    public function getTranslationClassName();
+
+    /**
      * Get fallback on translation status
      *
      * @return boolean
@@ -111,9 +118,9 @@ interface TranslatableInterface
      */
     public function setFallbackOnTranslation($fallback);
 
-
     /**
      * Return unannotated translatable fields
+     * NOTICE: This function should be override in sub classes if needed.
      *
      * @return array
      */
