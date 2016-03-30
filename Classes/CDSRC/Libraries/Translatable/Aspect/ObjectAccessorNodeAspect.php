@@ -57,7 +57,10 @@ class ObjectAccessorNodeAspect
 
         /** @var ObjectAccessorNode $objectAccessorNode */
         $objectAccessorNode = $joinPoint->getProxy();
-        $propertyPathSegments = array_filter(explode('.', $objectAccessorNode->getObjectPath()));
+        $propertyPathSegments = array_values(array_filter(
+            explode('.', $objectAccessorNode->getObjectPath()),
+            array($this, 'isValidPathSegment')
+        ));
         $countPropertyPathSegments = count($propertyPathSegments);
         if ($countPropertyPathSegments < 2) {
             return $result;
@@ -66,8 +69,8 @@ class ObjectAccessorNodeAspect
         $renderingContext = $joinPoint->getMethodArgument('renderingContext');
         $subject = $renderingContext->getTemplateVariableContainer();
         for ($i = 0; $i < $countPropertyPathSegments; $i++) {
-            $pathSegment = $propertyPathSegments[$i];
             try {
+                $pathSegment = $propertyPathSegments[$i];
                 $subject = ObjectAccess::getProperty($subject, $pathSegment);
             } catch (PropertyNotAccessibleException $exception) {
                 $subject = null;
@@ -99,5 +102,17 @@ class ObjectAccessorNodeAspect
         }
 
         return $subject;
+    }
+
+    /**
+     * Check if given segment path is valid
+     *
+     * @param mixed $segment
+     *
+     * @return bool
+     */
+    protected function isValidPathSegment($segment)
+    {
+        return !is_string($segment) || strlen($segment) > 0;
     }
 }
