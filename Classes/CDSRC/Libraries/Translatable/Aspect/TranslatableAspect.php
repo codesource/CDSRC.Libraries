@@ -27,6 +27,7 @@ namespace CDSRC\Libraries\Translatable\Aspect;
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;
 use CDSRC\Libraries\Translatable\Domain\Model\GenericTranslation;
 use CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface;
+use CDSRC\Libraries\Translatable\Property\TypeConverter\LocaleTypeConverter;
 use Doctrine\ORM\Query;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Aop\JoinPointInterface;
@@ -34,6 +35,7 @@ use TYPO3\Flow\Error\Result;
 use TYPO3\Flow\I18n\Locale;
 use TYPO3\Flow\Mvc\Controller\Argument;
 use TYPO3\Flow\Mvc\Controller\MvcPropertyMappingConfiguration;
+use TYPO3\Flow\Property\TypeConverterInterface;
 use TYPO3\Flow\Reflection\ReflectionService;
 
 /**
@@ -291,6 +293,7 @@ class TranslatableAspect
         $index = 0;
         $propertyMappingConfiguration->allowProperties('translations');
         $propertyMappingConfiguration->setTargetTypeForSubProperty('translations', 'Doctrine\Common\Collections\Collection<\\' . $translationClassName . '>');
+        $localeTypeConverter = new LocaleTypeConverter();
         foreach ($translations as $language => $translation) {
             $rawValue['translations'][$index] = $translation;
             $propertyPath = 'translations.' . $index;
@@ -303,6 +306,7 @@ class TranslatableAspect
             } else {
                 $propertyMappingConfiguration->allowCreationForSubProperty($propertyPath);
                 $translationMappingConfiguration->allowProperties('i18nLocale');
+                $propertyMappingConfiguration->forProperty($propertyPath.'.i18nLocale')->setTypeConverter($localeTypeConverter);
                 $rawValue['translations'][$index]['i18nLocale'] = $language;
             }
 
