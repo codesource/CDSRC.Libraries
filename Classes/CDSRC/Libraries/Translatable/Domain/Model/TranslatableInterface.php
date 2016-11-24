@@ -125,4 +125,11 @@ interface TranslatableInterface
      * @return array
      */
     public static function getTranslatableFields();
+
+    /**
+     * Return the list of all locales that have a translation
+     *
+     * @return array
+     */
+    public function getAvailableLocales();
 }

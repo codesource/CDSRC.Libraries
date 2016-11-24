@@ -50,16 +50,13 @@ class Version20151212051456 extends AbstractMigration
      */
     protected function renameTablesBasedOnTableMapping($tablesMapping){
 
-        $foreignKeysConstraints = array();
-        foreach($tablesMapping as $oldName => $newName){
-            foreach($this->findExistingForeignKeyContraintsForTableName($oldName) as $constraint){
-                $foreignKeysConstraints[] = $constraint;
-            }
-        }
+        $foreignKeysConstraints = $this->findExistingForeignKeyContraintsForTableName();
 
         // Drop existing foreign keys
         foreach($foreignKeysConstraints as $constraint){
-            $this->addSql('ALTER TABLE ' . $constraint['TABLE_NAME'] . ' DROP FOREIGN KEY ' . $constraint['CONSTRAINT_NAME']);
+            if(isset($tablesMapping[$constraint['TABLE_NAME']])) {
+                $this->addSql('ALTER TABLE ' . $constraint['TABLE_NAME'] . ' DROP FOREIGN KEY ' . $constraint['CONSTRAINT_NAME']);
+            }
         }
 
         // Rename tables
@@ -69,32 +66,31 @@ class Version20151212051456 extends AbstractMigration
 
         // Create new foreign keys
         foreach($foreignKeysConstraints as $constraint){
-            $tableName = isset($tablesMapping[$constraint['TABLE_NAME']]) ? $tablesMapping[$constraint['TABLE_NAME']] : $constraint['TABLE_NAME'];
-            $suffix = '';
-            if($constraint['UPDATE_RULE'] !== 'RESTRICT'){
-                $suffix .= ' ON UPDATE ' . $constraint['UPDATE_RULE'];
+            if(isset($tablesMapping[$constraint['TABLE_NAME']])){
+                $tableName = $tablesMapping[$constraint['TABLE_NAME']];
+                $suffix = '';
+                if($constraint['UPDATE_RULE'] !== 'RESTRICT'){
+                    $suffix .= ' ON UPDATE ' . $constraint['UPDATE_RULE'];
+                }
+                if($constraint['DELETE_RULE'] !== 'RESTRICT'){
+                    $suffix .= ' ON DELETE ' . $constraint['DELETE_RULE'];
+                }
+                $this->addSql('ALTER TABLE `' . $tableName . '` ADD CONSTRAINT ' . $constraint['CONSTRAINT_NAME'] . ' FOREIGN KEY (`'.$constraint['COLUMN_NAME'].'`) REFERENCES ' . $tablesMapping[$constraint['REFERENCED_TABLE_NAME']] . '('.$constraint['REFERENCED_COLUMN_NAME'].')' . $suffix);
             }
-            if($constraint['DELETE_RULE'] !== 'RESTRICT'){
-                $suffix .= ' ON DELETE ' . $constraint['DELETE_RULE'];
-            }
-            $this->addSql('ALTER TABLE `' . $tableName . '` ADD CONSTRAINT ' . $constraint['CONSTRAINT_NAME'] . ' FOREIGN KEY (`'.$constraint['COLUMN_NAME'].'`) REFERENCES ' . $tablesMapping[$constraint['REFERENCED_TABLE_NAME']] . '('.$constraint['REFERENCED_COLUMN_NAME'].')' . $suffix);
         }
     }
 
     /**
-     * Find existing foreign key for given table name
-     *
-     * @param $tableName
+     * Find existing foreign key
      *
      * @return array
      */
-	protected function findExistingForeignKeyContraintsForTableName($tableName)
+	protected function findExistingForeignKeyContraintsForTableName()
     {
         return $queryBuilderTemplate = $this->connection->createQueryBuilder()
             ->select('*')
             ->from('information_schema.KEY_COLUMN_USAGE', 'u')
             ->join('u', 'information_schema.REFERENTIAL_CONSTRAINTS', 'r', 'u.CONSTRAINT_NAME = r.CONSTRAINT_NAME')
-            ->where("u.TABLE_SCHEMA = '". $this->connection->getDatabase()."'")
-            ->andWhere("u.REFERENCED_TABLE_NAME = '". $tableName."'")->execute()->fetchAll();
+            ->where("u.TABLE_SCHEMA = '". $this->connection->getDatabase()."'")->execute()->fetchAll();
     }
 }
