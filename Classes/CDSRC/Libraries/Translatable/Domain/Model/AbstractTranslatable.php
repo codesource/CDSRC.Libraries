@@ -81,6 +81,19 @@ abstract class AbstractTranslatable implements TranslatableInterface
     }
 
     /**
+     * Clone entity
+     */
+    public function __clone(){
+        $translations = $this->getTranslations();
+        $this->translations = new ArrayCollection();
+        /** @var AbstractTranslation $translation */
+        foreach($translations as $translation){
+            $newTranslation = clone $translation;
+            $this->translations->add($newTranslation->setI18nParent($this, false));
+        }
+    }
+
+    /**
      * Get translation class name
      *
      * @return string
