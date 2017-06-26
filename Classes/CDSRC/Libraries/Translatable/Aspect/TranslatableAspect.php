@@ -28,6 +28,7 @@ use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;
 use CDSRC\Libraries\Translatable\Domain\Model\GenericTranslation;
 use CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface;
 use CDSRC\Libraries\Translatable\Property\TypeConverter\LocaleTypeConverter;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Aop\JoinPointInterface;
@@ -35,7 +36,6 @@ use TYPO3\Flow\Error\Result;
 use TYPO3\Flow\I18n\Locale;
 use TYPO3\Flow\Mvc\Controller\Argument;
 use TYPO3\Flow\Mvc\Controller\MvcPropertyMappingConfiguration;
-use TYPO3\Flow\Property\TypeConverterInterface;
 use TYPO3\Flow\Reflection\ReflectionService;
 
 /**
@@ -95,6 +95,8 @@ class TranslatableAspect
 
             // Update validation path
             $this->updateValidationPaths($joinPoint, $translations);
+
+            // TODO: UPDATE VALIDATION PATH FOR NESTED PROPERTIES
         } else {
             $joinPoint->getAdviceChain()->proceed($joinPoint);
         }
@@ -118,19 +120,11 @@ class TranslatableAspect
         $rawValue = $joinPoint->getMethodArgument('rawValue');
         $translations = array();
         if (is_array($rawValue) && !isset($rawValue['translations'])) {
-            $translationClassName = $this->getTranslationTable($argument->getDataType());
-            if ($translationClassName instanceof GenericTranslation) {
-                // TODO: Implement generic version
-                throw \Exception('NOT IMPLEMENTED');
-            } else {
-                $translationProperties = $this->getTranslationProperties($translationClassName);
-                $translations = $this->getTranslationsAndUpdateRawValue($rawValue, $translationProperties);
-                if (!empty($translations)) {
-                    $this->setIdentityToExistingTranslation($translations, $rawValue, $translationClassName);
-                    $propertyMappingConfiguration = $argument->getPropertyMappingConfiguration();
-                    $this->injectTranslationsInRawValue($translations, $rawValue, $translationClassName, $translationProperties, $propertyMappingConfiguration);
-                }
-            }
+            $translations = $this->updateRawValueForEntity(
+                $argument->getDataType(),
+                $rawValue,
+                $argument->getPropertyMappingConfiguration()
+            );
             $joinPoint->setMethodArgument('rawValue', $rawValue);
         }
 
@@ -229,7 +223,8 @@ class TranslatableAspect
     {
         $identifierPropertyName = $this->getTranslationIdentifierPropertyName($translationClassName);
         if (isset($rawValue['__identity']) && $identifierPropertyName) {
-            $translationsData = $this->findTranslationsIdentifiersAndLocale($translationClassName, $rawValue['__identity'], $identifierPropertyName);
+            $translationsData = $this->findTranslationsIdentifiersAndLocale($translationClassName,
+                $rawValue['__identity'], $identifierPropertyName);
             if (is_array($translationsData)) {
                 foreach ($translationsData as $data) {
                     if (isset($translations[$data['i18nLocale']])) {
@@ -250,7 +245,8 @@ class TranslatableAspect
     protected function getTranslationIdentifierPropertyName($translationClassName)
     {
         if (!isset($this->translationIdentifierPropertyName[$translationClassName])) {
-            $propertyNames = $this->reflectionService->getPropertyNamesByAnnotation($translationClassName, 'Doctrine\ORM\Mapping\Id');
+            $propertyNames = $this->reflectionService->getPropertyNamesByAnnotation($translationClassName,
+                'Doctrine\ORM\Mapping\Id');
             $this->translationIdentifierPropertyName[$translationClassName] = isset($propertyNames[0]) ? $propertyNames[0] : null;
         }
 
@@ -264,8 +260,11 @@ class TranslatableAspect
      *
      * @return array
      */
-    protected function findTranslationsIdentifiersAndLocale($className, $parentIdentifier, $identifierPropertyName = 'Persistence_Object_Identifier')
-    {
+    protected function findTranslationsIdentifiersAndLocale(
+        $className,
+        $parentIdentifier,
+        $identifierPropertyName = 'Persistence_Object_Identifier'
+    ) {
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = $this->entityManager->createQueryBuilder();
 
@@ -288,11 +287,17 @@ class TranslatableAspect
      *
      * @return void
      */
-    protected function injectTranslationsInRawValue(array $translations, array &$rawValue, $translationClassName, array $translationProperties, MvcPropertyMappingConfiguration $propertyMappingConfiguration)
-    {
+    protected function injectTranslationsInRawValue(
+        array $translations,
+        array &$rawValue,
+        $translationClassName,
+        array $translationProperties,
+        MvcPropertyMappingConfiguration $propertyMappingConfiguration
+    ) {
         $index = 0;
         $propertyMappingConfiguration->allowProperties('translations');
-        $propertyMappingConfiguration->setTargetTypeForSubProperty('translations', 'Doctrine\Common\Collections\Collection<\\' . $translationClassName . '>');
+        $propertyMappingConfiguration->setTargetTypeForSubProperty('translations',
+            'Doctrine\Common\Collections\Collection<\\' . $translationClassName . '>');
         $localeTypeConverter = new LocaleTypeConverter();
         foreach ($translations as $language => $translation) {
             $rawValue['translations'][$index] = $translation;
@@ -306,7 +311,7 @@ class TranslatableAspect
             } else {
                 $propertyMappingConfiguration->allowCreationForSubProperty($propertyPath);
                 $translationMappingConfiguration->allowProperties('i18nLocale');
-                $propertyMappingConfiguration->forProperty($propertyPath.'.i18nLocale')->setTypeConverter($localeTypeConverter);
+                $propertyMappingConfiguration->forProperty($propertyPath . '.i18nLocale')->setTypeConverter($localeTypeConverter);
                 $rawValue['translations'][$index]['i18nLocale'] = $language;
             }
 
@@ -316,7 +321,8 @@ class TranslatableAspect
         }
 
         // Allow all translation indexes
-        call_user_func_array(array($propertyMappingConfiguration->forProperty('translations'), 'allowProperties'), array_keys($rawValue['translations']));
+        call_user_func_array(array($propertyMappingConfiguration->forProperty('translations'), 'allowProperties'),
+            array_keys($rawValue['translations']));
     }
 
     /**
@@ -411,5 +417,79 @@ class TranslatableAspect
         }
         $validationResultsProperty->setValue($argumentValidationResults, $propertyResults);
 
+    }
+
+    /**
+     * @param string $className
+     * @param array $rawValue
+     * @param MvcPropertyMappingConfiguration $propertyMappingConfiguration
+     *
+     * @return array
+     */
+    protected function updateRawValueForEntity(
+        $className,
+        array &$rawValue,
+        MvcPropertyMappingConfiguration $propertyMappingConfiguration
+    ) {
+        $translations = array();
+        $translationClassName = $this->getTranslationTable($className);
+        if ($translationClassName instanceof GenericTranslation) {
+            // TODO: Implement generic version
+            throw \Exception('NOT IMPLEMENTED');
+        } else {
+            $translationProperties = $this->getTranslationProperties($translationClassName);
+            $translations = $this->getTranslationsAndUpdateRawValue($rawValue, $translationProperties);
+            if (!empty($translations)) {
+                $this->setIdentityToExistingTranslation($translations, $rawValue, $translationClassName);
+                $this->injectTranslationsInRawValue(
+                    $translations,
+                    $rawValue,
+                    $translationClassName,
+                    $translationProperties,
+                    $propertyMappingConfiguration
+                );
+            }
+            $this->updateRawValueNestedEntities($className, $rawValue, $propertyMappingConfiguration);
+        }
+
+        return $translations;
+    }
+
+    /**
+     * @param string $className
+     * @param array $rawValue
+     * @param MvcPropertyMappingConfiguration $propertyMappingConfiguration
+     *
+     * @return mixed
+     */
+    protected function updateRawValueNestedEntities(
+        $className,
+        &$rawValue,
+        MvcPropertyMappingConfiguration $propertyMappingConfiguration
+    ) {
+        $class = $this->entityManager->getClassMetadata($className);
+        foreach ($class->associationMappings as $field => $association) {
+            if ($field !== 'translations' && isset($rawValue[$field])) {
+                if (is_array($rawValue[$field])) {
+                    if ($association['type'] & ClassMetadata::TO_MANY) {
+                        foreach ($rawValue[$field] as $key => &$value) {
+                            if (is_array($value)) {
+                                $this->updateRawValueForEntity(
+                                    $association['targetEntity'],
+                                    $value,
+                                    $propertyMappingConfiguration->forProperty($field . '.' . $key)
+                                );
+                            }
+                        }
+                    } else {
+                        $this->updateRawValueForEntity(
+                            $association['targetEntity'],
+                            $rawValue[$field],
+                            $propertyMappingConfiguration->forProperty($field)
+                        );
+                    }
+                }
+            }
+        }
     }
 }
