@@ -1,15 +1,14 @@
 <?php
 /**
- * @copyright Copyright (c) 2016 Code-Source
+ * @copyright Copyright (c) 2018 Code-Source
  */
 namespace CDSRC\Libraries\Translatable\Property\TypeConverter;
 
-
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\I18n\Locale;
-use TYPO3\Flow\Property\Exception\InvalidPropertyMappingConfigurationException;
-use TYPO3\Flow\Property\PropertyMappingConfigurationInterface;
-use TYPO3\Flow\Property\TypeConverter\AbstractTypeConverter;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\I18n\Locale;
+use Neos\Flow\Property\Exception\InvalidPropertyMappingConfigurationException;
+use Neos\Flow\Property\PropertyMappingConfigurationInterface;
+use Neos\Flow\Property\TypeConverter\AbstractTypeConverter;
 
 /**
  * Converter which transforms Locale/String types to Locale.

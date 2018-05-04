@@ -1,12 +1,11 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
+
 namespace CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow package "Weekup.Core".           *
- *                                                                        *
- *                                                                        */
-
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 use Doctrine\ORM\Mapping as ORM;
 use CDSRC\Libraries\Traceable\Domain\Model\TimestampableTrait;
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;

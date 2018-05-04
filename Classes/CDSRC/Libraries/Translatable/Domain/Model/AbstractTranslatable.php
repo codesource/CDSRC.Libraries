@@ -1,32 +1,14 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\Translatable\Domain\Model;
 
-/*******************************************************************************
- *
- *  All rights reserved
- *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ******************************************************************************/
-
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\I18n\Locale;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\I18n\Locale;
 
 /**
  * Abstract class for translatable entities
@@ -83,11 +65,12 @@ abstract class AbstractTranslatable implements TranslatableInterface
     /**
      * Clone entity
      */
-    public function __clone(){
+    public function __clone()
+    {
         $translations = $this->getTranslations();
         $this->translations = new ArrayCollection();
         /** @var AbstractTranslation $translation */
-        foreach($translations as $translation){
+        foreach ($translations as $translation) {
             $newTranslation = clone $translation;
             $this->translations->add($newTranslation->setI18nParent($this, false));
         }
@@ -137,7 +120,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
     /**
      * Check if object has a translation for a specific locale
      *
-     * @param \TYPO3\Flow\I18n\Locale $locale
+     * @param \Neos\Flow\I18n\Locale $locale
      *
      * @return boolean
      */
@@ -183,7 +166,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
     /**
      * Remove a translation by locale
      *
-     * @param \TYPO3\Flow\I18n\Locale $locale
+     * @param \Neos\Flow\I18n\Locale $locale
      *
      * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
      */
@@ -252,7 +235,9 @@ abstract class AbstractTranslatable implements TranslatableInterface
         }
 
         return $this;
-    }    /**
+    }
+
+    /**
      * Replace all translations by the given collection
      *
      * @param ArrayCollection <\CDSRC\Libraries\Translatable\Domain\Model\TranslationInterface> $translations
@@ -285,16 +270,19 @@ abstract class AbstractTranslatable implements TranslatableInterface
         }
 
         return null;
-    }    /**
+    }
+
+    /**
      * Get all translations
      *
      * @return \Doctrine\Common\Collections\ArrayCollection<\CDSRC\Libraries\Translatable\Domain\Model\TranslationInterface>
      */
     public function getTranslations()
     {
-        if($this->translations === null){
+        if ($this->translations === null) {
             $this->translations = new ArrayCollection();
         }
+
         return $this->translations;
     }
 
@@ -319,11 +307,13 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @return array
      */
-    public function getAvailableLocales(){
+    public function getAvailableLocales()
+    {
         $locales = array();
-        foreach($this->getTranslations() as $translation){
+        foreach ($this->getTranslations() as $translation) {
             $locales[] = (string)$translation->getI18nLocale();
         }
+
         return array_unique($locales);
     }
 
@@ -339,16 +329,30 @@ abstract class AbstractTranslatable implements TranslatableInterface
     public function __call($method, $arguments)
     {
         // By default we use the locale set with setCurrentLocale
+        /** @var TranslationInterface $translation */
         $translation = $this->curTranslation;
 
         $firstParam = reset($arguments);
-        if (count($arguments) === 1 && is_array($firstParam) && strpos($method, 'set') === 0) {
+        $countArgument = count($arguments);
+        if ($countArgument === 1 && strpos($method, 'set') === 0 && is_array($firstParam)) {
+
             // If function is a setter and argument is an array of translation, iterate through translation
             foreach ($firstParam as $locale => $value) {
                 call_user_func_array(array($this, $method), array($value, new Locale($locale), true));
             }
 
             return $this;
+        } elseif ($countArgument === 0 && preg_match('/^getAll/', $method)) {
+            $values = [];
+            $method = preg_replace('/^getAll/', 'get', $method);
+            foreach ($this->getTranslations() as $translation) {
+                $values[(string)$translation->getI18nLocale()] = call_user_func_array(array(
+                    $translation,
+                    $method,
+                ), []);
+            }
+
+            return $values;
         } else {
             $lastParam = end($arguments);
             if ($lastParam && $lastParam instanceof Locale) {
@@ -357,12 +361,12 @@ abstract class AbstractTranslatable implements TranslatableInterface
                 array_pop($arguments); // Remove the last parameter as we just "consumed" it
 
                 // If function is a getter, try to see if we have a fallback Locale
-                if($this->getFallbackOnTranslation() && strpos($method, 'get') === 0){
+                if ($this->getFallbackOnTranslation() && strpos($method, 'get') === 0) {
                     $newLastParam = end($arguments);
                     if ($newLastParam && $newLastParam instanceof Locale) {
                         $originalTranslation = $this->getTranslationObjectForLocale($newLastParam);
                         array_pop($arguments); // Remove the last parameter as we just "consumed" it
-                        if($originalTranslation !== null){
+                        if ($originalTranslation !== null) {
                             $translation = $originalTranslation;
                         }
                     }
@@ -429,10 +433,6 @@ abstract class AbstractTranslatable implements TranslatableInterface
 
         return $translation;
     }
-
-
-
-
 
 
 }

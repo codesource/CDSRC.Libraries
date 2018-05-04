@@ -1,39 +1,19 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\Translatable\Domain\Validator;
 
-
-/* **********************************************************************
- *
- *  Copyright notice
- *
- *  (c) 2015 Matthias Toscanelli <m.toscanelli@code-source.ch>
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- * ******************************************************************** */
-
-use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Validation\Validator\AbstractValidator;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Validation\Validator\AbstractValidator;
 
 class AbstractTranslationValidator extends AbstractValidator
 {
 
     /**
-     * @var \TYPO3\Flow\Validation\ValidatorResolver
+     * @var \Neos\Flow\Validation\ValidatorResolver
      * @Flow\Inject
      */
     protected $validatorResolver;
@@ -45,7 +25,7 @@ class AbstractTranslationValidator extends AbstractValidator
      * @param mixed $value
      *
      * @return void
-     * @throws \TYPO3\Flow\Validation\Exception\InvalidValidationOptionsException if invalid validation options have been specified in the constructor
+     * @throws \Neos\Flow\Validation\Exception\InvalidValidationOptionsException if invalid validation options have been specified in the constructor
      */
     protected function isValid($value)
     {

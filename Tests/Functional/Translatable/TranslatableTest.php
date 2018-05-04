@@ -1,9 +1,12 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\Tests\Functional\Translatable;
 
-use TYPO3\Flow\I18n\Locale;
-use TYPO3\Flow\Tests\FunctionalTestCase;
+use Neos\Flow\I18n\Locale;
+use Neos\Flow\Tests\FunctionalTestCase;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Category;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\CategoryTranslation;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\CategoryRepository;

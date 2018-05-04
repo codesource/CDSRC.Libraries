@@ -1,34 +1,16 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\SoftDeletable\Filters;
-
-/*******************************************************************************
- *
- *  All rights reserved
- *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ******************************************************************************/
 
 use CDSRC\Libraries\SoftDeletable\Annotations\SoftDeletable;
 use CDSRC\Libraries\SoftDeletable\Exceptions\PropertyNotFoundException;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\Filter\SQLFilter;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Core\Bootstrap;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Core\Bootstrap;
 
 /**
  * ORM query filter to get only active entities
@@ -55,7 +37,7 @@ class MarkedAsDeletedFilter extends SQLFilter
     protected static $disabled = array();
 
     /**
-     * @var \TYPO3\Flow\Reflection\ReflectionService
+     * @var \Neos\Flow\Reflection\ReflectionService
      */
     protected $reflectionService;
 
@@ -66,6 +48,9 @@ class MarkedAsDeletedFilter extends SQLFilter
 
     /**
      * {@inheritdoc}
+     *
+     * @throws PropertyNotFoundException
+     * @throws \ReflectionException
      */
     public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias)
     {
@@ -103,12 +88,12 @@ class MarkedAsDeletedFilter extends SQLFilter
     /**
      * Get reflection service from bootstrap
      *
-     * @return \TYPO3\Flow\Reflection\ReflectionService
+     * @return \Neos\Flow\Reflection\ReflectionService
      */
     protected function getReflectionService()
     {
         if ($this->reflectionService === null) {
-            $this->reflectionService = Bootstrap::$staticObjectManager->get('TYPO3\Flow\Reflection\ReflectionService');
+            $this->reflectionService = Bootstrap::$staticObjectManager->get('Neos\Flow\Reflection\ReflectionService');
         }
 
         return $this->reflectionService;
@@ -118,6 +103,8 @@ class MarkedAsDeletedFilter extends SQLFilter
      * Get entityManager from parent
      *
      * @return \Doctrine\ORM\EntityManager
+     *
+     * @throws \ReflectionException
      */
     protected function getEntityManager()
     {

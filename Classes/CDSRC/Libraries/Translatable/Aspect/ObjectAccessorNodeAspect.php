@@ -1,38 +1,19 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\Translatable\Aspect;
 
-
-/* **********************************************************************
- *
- *  Copyright notice
- *
- *  (c) 2015 Matthias Toscanelli <m.toscanelli@code-source.ch>
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- * ******************************************************************** */
-
 use CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Aop\JoinPointInterface;
-use TYPO3\Flow\I18n\Locale;
-use TYPO3\Flow\Reflection\Exception\PropertyNotAccessibleException;
-use TYPO3\Flow\Reflection\ObjectAccess;
-use TYPO3\Fluid\Core\Parser\SyntaxTree\ObjectAccessorNode;
-use TYPO3\Fluid\Core\Parser\SyntaxTree\RenderingContextAwareInterface;
-use TYPO3\Fluid\Core\Parser\SyntaxTree\TemplateObjectAccessInterface;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Aop\JoinPointInterface;
+use Neos\Flow\I18n\Locale;
+use Neos\Flow\Reflection\Exception\PropertyNotAccessibleException;
+use Neos\Flow\Reflection\ObjectAccess;
+use Neos\Fluid\Core\Parser\SyntaxTree\ObjectAccessorNode;
+use Neos\Fluid\Core\Parser\SyntaxTree\RenderingContextAwareInterface;
+use Neos\Fluid\Core\Parser\SyntaxTree\TemplateObjectAccessInterface;
 
 /**
  * Class ObjectAccessorAspect
@@ -43,7 +24,7 @@ class ObjectAccessorNodeAspect
 {
     /**
      *
-     * @Flow\Around("method(TYPO3\Fluid\Core\Parser\SyntaxTree\ObjectAccessorNode->evaluate())")
+     * @Flow\Around("method(Neos\Fluid\Core\Parser\SyntaxTree\ObjectAccessorNode->evaluate())")
      * @param JoinPointInterface $joinPoint The current joinpoint
      *
      * @return mixed
@@ -72,6 +53,8 @@ class ObjectAccessorNodeAspect
             try {
                 $pathSegment = $propertyPathSegments[$i];
                 $subject = ObjectAccess::getProperty($subject, $pathSegment);
+            } catch (\InvalidArgumentException $exception) {
+                $subject = null;
             } catch (PropertyNotAccessibleException $exception) {
                 $subject = null;
             }

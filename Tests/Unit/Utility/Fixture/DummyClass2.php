@@ -1,10 +1,9 @@
 <?php
-namespace CDSRC\Libraries\Tests\Unit\Utility\Fixture;
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
-    /* *
-     * This script belongs to the TYPO3 Flow package "CDSRC.Libraries".       *
-     *                                                                        *
-     *                                                                        */
+namespace CDSRC\Libraries\Tests\Unit\Utility\Fixture;
 
 
 /**

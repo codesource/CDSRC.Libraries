@@ -1,34 +1,17 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\Traceable\Events;
 
-/*******************************************************************************
- *
- *  All rights reserved
- *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ******************************************************************************/
-
+use CDSRC\Libraries\Exceptions\InvalidValueException;
 use CDSRC\Libraries\Traceable\Annotations\Traceable;
 use CDSRC\Libraries\Traceable\Exceptions\VarAnnotationNotFoundException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\UnitOfWork;
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 
 /**
@@ -47,7 +30,7 @@ class EventListener
     protected static $storedProperties = array();
 
     /**
-     * @var \TYPO3\Flow\Reflection\ReflectionService
+     * @var \Neos\Flow\Reflection\ReflectionService
      * @Flow\Inject
      */
     protected $reflectionService;
@@ -55,7 +38,11 @@ class EventListener
     /**
      * Intercept flush event
      *
-     * @param \Doctrine\ORM\Event\OnFlushEventArgs $eventArgs
+     * @param OnFlushEventArgs $eventArgs
+     *
+     * @throws InvalidValueException
+     * @throws VarAnnotationNotFoundException
+     * @throws \ReflectionException
      */
     public function onFlush(OnFlushEventArgs $eventArgs)
     {
@@ -76,8 +63,11 @@ class EventListener
      * Flush for insertions
      *
      * @param object $entity
-     * @param \Doctrine\ORM\EntityManager $entityManager
-     * @param \Doctrine\ORM\UnitOfWork $unitOfWork
+     * @param EntityManager $entityManager
+     * @param UnitOfWork $unitOfWork
+     *
+     * @throws VarAnnotationNotFoundException
+     * @throws \ReflectionException
      */
     protected function onFlushForInsertions(&$entity, EntityManager &$entityManager, UnitOfWork &$unitOfWork)
     {
@@ -128,6 +118,10 @@ class EventListener
      * @param \CDSRC\Libraries\Traceable\Annotations\Traceable $annotation
      *
      * @return array
+     *
+     * @throws VarAnnotationNotFoundException
+     * @throws \ReflectionException
+     * @throws InvalidValueException
      */
     protected function updateEntityPropertyValue(&$entity, $className, $propertyName, Traceable $annotation)
     {
@@ -150,7 +144,8 @@ class EventListener
      *
      * @return string
      *
-     * @throws \CDSRC\Libraries\Traceable\Exceptions\VarAnnotationNotFoundException
+     * @throws VarAnnotationNotFoundException
+     * @throws \ReflectionException
      */
     protected function getPropertyType($className, $propertyName, \ReflectionProperty $property = null)
     {
@@ -172,6 +167,10 @@ class EventListener
      * @param object $entity
      * @param \Doctrine\ORM\EntityManager $entityManager
      * @param \Doctrine\ORM\UnitOfWork $unitOfWork
+     *
+     * @throws VarAnnotationNotFoundException
+     * @throws InvalidValueException
+     * @throws \ReflectionException
      */
     protected function onFlushForUpdates(&$entity, EntityManager &$entityManager, UnitOfWork &$unitOfWork)
     {

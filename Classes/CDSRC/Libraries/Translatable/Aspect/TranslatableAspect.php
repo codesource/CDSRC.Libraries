@@ -1,42 +1,25 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\Translatable\Aspect;
 
-
-/* **********************************************************************
- *
- *  Copyright notice
- *
- *  (c) 2015 Matthias Toscanelli <m.toscanelli@code-source.ch>
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- * ******************************************************************** */
-
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;
+use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation;
 use CDSRC\Libraries\Translatable\Domain\Model\GenericTranslation;
 use CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface;
 use CDSRC\Libraries\Translatable\Property\TypeConverter\LocaleTypeConverter;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Aop\JoinPointInterface;
-use TYPO3\Flow\Error\Result;
-use TYPO3\Flow\I18n\Locale;
-use TYPO3\Flow\Mvc\Controller\Argument;
-use TYPO3\Flow\Mvc\Controller\MvcPropertyMappingConfiguration;
-use TYPO3\Flow\Reflection\ReflectionService;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Aop\JoinPointInterface;
+use Neos\Flow\Error\Result;
+use Neos\Flow\I18n\Locale;
+use Neos\Flow\Mvc\Controller\Argument;
+use Neos\Flow\Mvc\Controller\MvcPropertyMappingConfiguration;
+use Neos\Flow\Property\TypeConverterInterface;
+use Neos\Flow\Reflection\ReflectionService;
 
 /**
  * An aspect which centralizes the logging of security relevant actions.
@@ -76,10 +59,10 @@ class TranslatableAspect
 
     /**
      *
-     * @Flow\Around("method(TYPO3\Flow\Mvc\Controller\Argument->setValue())")
+     * @Flow\Around("method(Neos\Flow\Mvc\Controller\Argument->setValue())")
      * @param JoinPointInterface $joinPoint The current joinpoint
      *
-     * @return \TYPO3\Flow\Mvc\Controller\Argument
+     * @return Argument
      */
     public function fixTranslatableArguments(JoinPointInterface $joinPoint)
     {
@@ -88,13 +71,13 @@ class TranslatableAspect
 
         if ($this->reflectionService->isClassImplementationOf($argument->getDataType(), TranslatableInterface::class)) {
             // Update method argument
-            $translations = $this->updateRawValueMethodArgument($joinPoint);
+            $this->updateRawValueMethodArgument($joinPoint);
 
             // Proceed joinPoint
             $joinPoint->getAdviceChain()->proceed($joinPoint);
 
             // Update validation path
-            $this->updateValidationPaths($joinPoint, $translations);
+            $this->updateValidationPaths($joinPoint);
 
             // TODO: UPDATE VALIDATION PATH FOR NESTED PROPERTIES
         } else {
@@ -108,10 +91,9 @@ class TranslatableAspect
     /**
      * Update rawValue argument of "setValue" method
      *
-     * @param \TYPO3\Flow\Aop\JoinPointInterface $joinPoint
+     * @param JoinPointInterface $joinPoint
      *
      * @return array
-     * @throws
      */
     protected function updateRawValueMethodArgument(JoinPointInterface &$joinPoint)
     {
@@ -165,8 +147,8 @@ class TranslatableAspect
                 $annotations = $this->reflectionService->getPropertyAnnotations($translationClassName, $value);
                 if (isset($annotations['CDSRC\Libraries\Translatable\Annotations\Locked']) ||
                     isset($annotations['Doctrine\ORM\Mapping\Id']) ||
-                    isset($annotations['TYPO3\Flow\Annotations\Transient']) ||
-                    isset($annotations['TYPO3\Flow\Annotations\Inject'])
+                    isset($annotations['Neos\Flow\Annotations\Transient']) ||
+                    isset($annotations['Neos\Flow\Annotations\Inject'])
                 ) {
                     unset($properties[$key]);
                 }
@@ -283,7 +265,7 @@ class TranslatableAspect
      * @param array $rawValue
      * @param string $translationClassName
      * @param array $translationProperties
-     * @param \TYPO3\Flow\Mvc\Controller\MvcPropertyMappingConfiguration $propertyMappingConfiguration
+     * @param MvcPropertyMappingConfiguration $propertyMappingConfiguration
      *
      * @return void
      */
@@ -328,32 +310,39 @@ class TranslatableAspect
     /**
      * Update validation result paths for arguments
      *
-     * @param \TYPO3\Flow\Aop\JoinPointInterface $joinPoint
+     * @param JoinPointInterface $joinPoint
      * @param array $translations
      *
      * @return void
      */
-    protected function updateValidationPaths(JoinPointInterface &$joinPoint, array $translations)
+    protected function updateValidationPaths(JoinPointInterface &$joinPoint)
     {
         /** @var Argument $argument */
         $argument = $joinPoint->getProxy();
         /** @var Result $argumentValidationResults */
         $argumentValidationResults = $argument->getValidationResults();
 
-        $translationsValidationResults = $argumentValidationResults->forProperty('translations');
-        if ($translationsValidationResults->hasMessages()) {
-            $flattenedErrors = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedErrors());
-            $flattenedNotices = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedNotices());
-            $flattenedWarnings = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedWarnings());
-            $this->overrideTranslationsArgumentValidationResults($argumentValidationResults);
+        $this->mergeTranslationValidationResults($argumentValidationResults, $argument->getValue());
+    }
 
-            /** @var AbstractTranslatable $translatableObject */
-            $translatableObject = $argument->getValue();
-            foreach ($translations as $language => $translation) {
-                $translationObject = $translatableObject->getTranslationByLocale(new Locale($language));
-                if ($translatableObject !== null) {
-                    $index = $translatableObject->getTranslations()->indexOf($translationObject);
-                    foreach ($translation as $property => $value) {
+    /**
+     * @param Result $validationResults
+     * @param AbstractTranslatable|null $translatableObject£
+     */
+    protected function mergeTranslationValidationResults(Result &$validationResults, AbstractTranslatable $translatableObject = null){
+        if($translatableObject) {
+            $translationsValidationResults = $validationResults->forProperty('translations');
+            if ($translationsValidationResults->hasMessages()) {
+                $flattenedErrors = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedErrors());
+                $flattenedNotices = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedNotices());
+                $flattenedWarnings = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedWarnings());
+                $this->overrideTranslationsArgumentValidationResults($validationResults);
+
+                $translatableProperties = call_user_func([get_class($translatableObject), 'getTranslatableFields']);
+                /** @var AbstractTranslation $translation */
+                foreach ($translatableObject->getTranslations() as $index => $translation) {
+                    $language = (string)$translation->getI18nLocale();
+                    foreach ($translatableProperties as $property) {
                         $propertyPath = $index . '.' . $property;
                         $result = new Result();
                         if (isset($flattenedErrors[$propertyPath]) && is_array($flattenedErrors[$propertyPath])) {
@@ -372,7 +361,27 @@ class TranslatableAspect
                             }
                         }
                         if ($result->hasMessages()) {
-                            $argumentValidationResults->forProperty($property . '.' . $language)->merge($result);
+                            $validationResults->forProperty($property . '.' . $language)->merge($result);
+                        }
+                    }
+                }
+            }
+            $reflectionClass = new \ReflectionClass($translatableObject);
+            foreach ($validationResults->getSubResults() as $property => &$result) {
+                if ($property !== 'translations' && $reflectionClass->hasProperty($property)) {
+                    $reflectionProperty = $reflectionClass->getProperty($property);
+                    $reflectionProperty->setAccessible(true);
+                    $nestedTranslatableObject = $reflectionProperty->getValue($translatableObject);
+                    if ($nestedTranslatableObject instanceof AbstractTranslatable) {
+                        $this->mergeTranslationValidationResults($result, $nestedTranslatableObject);
+                    } elseif ($nestedTranslatableObject instanceof \Traversable) {
+                        $index = 0;
+                        foreach ($nestedTranslatableObject as $item) {
+                            if ($item instanceof AbstractTranslatable) {
+                                $subResult = $result->forProperty($index);
+                                $this->mergeTranslationValidationResults($subResult, $item);
+                            }
+                            $index++;
                         }
                     }
                 }

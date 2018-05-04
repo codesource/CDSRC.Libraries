@@ -1,16 +1,13 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\Tests\Unit\Utility;
 
-
-/* *
- * This script belongs to the TYPO3 Flow package "CDSRC.Libraries".       *
- *                                                                        *
- *                                                                        */
-
 use CDSRC\Libraries\Exceptions\InvalidValueException;
 use CDSRC\Libraries\Utility\AnnotationValueParser as Parser;
-use TYPO3\Flow\Tests\UnitTestCase;
+use Neos\Flow\Tests\UnitTestCase;
 
 /**
  * Test case for the traceable annotation
@@ -186,6 +183,9 @@ class AnnotationValueParserTest extends UnitTestCase
      *
      * @test
      * @dataProvider getValuesResults
+     *
+     * @throws InvalidValueException
+     * @throws \ReflectionException
      */
     public function checkValueParsing($value, $result, $throwException = NULL, $throwExceptionCode = NULL)
     {
