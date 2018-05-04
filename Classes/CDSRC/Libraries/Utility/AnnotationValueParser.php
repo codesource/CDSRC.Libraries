@@ -122,18 +122,16 @@ class AnnotationValueParser
      * @param array $for
      *
      * @return array
+     *
+     * @throws InvalidValueException
+     * @throws \ReflectionException
      */
     protected static function buildArgumentsFor(array $arguments, array $for)
     {
         $_args = array();
         foreach ($arguments as $argument) {
             if (is_array($argument)) {
-                try {
-                    $_args[] = self::getValueFor($argument, $for);
-                }catch (\Exception $e){
-                    trigger_error($e->getMessage(), E_USER_WARNING);
-                    $_args[] =  null;
-                }
+                $_args[] = self::getValueFor($argument, $for);
             } elseif (preg_match('/^\{.*\}$/', $argument) && strlen($key = substr($argument, 1, -1)) > 0 && isset($for[$key])) {
                 $_args[] = &$for[$key];
             } else {

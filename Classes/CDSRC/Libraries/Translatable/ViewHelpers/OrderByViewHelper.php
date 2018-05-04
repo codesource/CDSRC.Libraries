@@ -20,18 +20,26 @@ class OrderByViewHelper extends AbstractViewHelper
      * @param \Traversable $items
      * @param string $property
      * @param string|Locale $locale
+     * @param string|Locale|null $alternativeLocale
      * @param string $as
      *
      * @return string
      */
-    public function render(\Traversable $items, $property, $locale, $as = "items")
+    public function render(\Traversable $items, $property, $locale, $alternativeLocale = null, $as = "items")
     {
         try {
             $sortedArray = [];
             $localeObject = $locale instanceof Locale ? $locale : new Locale($locale);
             $getter = 'get' . ucfirst($property);
-            foreach ($items as $index => $item) {
-                $sortedArray[$item->$getter($localeObject) . ':' . $index] = $item;
+            if($alternativeLocale === null) {
+                foreach ($items as $index => $item) {
+                    $sortedArray[$item->$getter($localeObject) . ':' . $index] = $item;
+                }
+            }else{
+                $alternativeLocaleObject =  $alternativeLocale instanceof Locale ? $alternativeLocale : new Locale($alternativeLocale);
+                foreach ($items as $index => $item) {
+                    $sortedArray[$item->$getter($localeObject, $alternativeLocaleObject) . ':' . $index] = $item;
+                }
             }
             ksort($sortedArray);
             $this->templateVariableContainer->add($as, $sortedArray);

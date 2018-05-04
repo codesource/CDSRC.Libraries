@@ -53,6 +53,8 @@ class ObjectAccessorNodeAspect
             try {
                 $pathSegment = $propertyPathSegments[$i];
                 $subject = ObjectAccess::getProperty($subject, $pathSegment);
+            } catch (\InvalidArgumentException $exception) {
+                $subject = null;
             } catch (PropertyNotAccessibleException $exception) {
                 $subject = null;
             }

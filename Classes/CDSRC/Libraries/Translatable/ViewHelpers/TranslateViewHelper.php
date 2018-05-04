@@ -26,12 +26,13 @@ class TranslateViewHelper extends AbstractViewHelper
      *
      * @param string $property
      * @param string|Locale $locale
+     * @param string|Locale|null $alternativeLocale
      * @param TranslatableInterface|null $object
      *
      * @return string
      *
      */
-    public function render($property, $locale, $object = null)
+    public function render($property, $locale, $alternativeLocale = null, $object = null)
     {
         if(empty($object)){
             $object = $this->renderChildren();
@@ -40,9 +41,15 @@ class TranslateViewHelper extends AbstractViewHelper
             return '';
         }
         try {
+
             $localeObject = $locale instanceof Locale ? $locale : new Locale($locale);
             $getter = 'get' .ucfirst($property);
-            return $object->$getter($localeObject);
+            if($alternativeLocale === null) {
+                return $object->$getter($localeObject);
+            }else{
+                $alternativeLocaleObject =  $alternativeLocale instanceof Locale ? $alternativeLocale : new Locale($alternativeLocale);
+                return $object->$getter($localeObject, $alternativeLocaleObject);
+            }
         }catch(\Exception $e){
             return '';
         }
