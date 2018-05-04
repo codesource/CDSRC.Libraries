@@ -1,36 +1,18 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\Translatable\Domain\Model;
-
-/*******************************************************************************
- *
- *  All rights reserved
- *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ******************************************************************************/
 
 use CDSRC\Libraries\Translatable\Annotations as CDSRC;
 use CDSRC\Libraries\Translatable\Annotations\Locked;
 use CDSRC\Libraries\Translatable\Annotations\Translatable;
 use Doctrine\ORM\Mapping as ORM;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\I18n\Locale;
-use TYPO3\Flow\Object\Exception\InvalidClassException;
-use TYPO3\Flow\Property\Exception\InvalidPropertyException;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\I18n\Locale;
+use Neos\Flow\Object\Exception\InvalidClassException;
+use Neos\Flow\Property\Exception\InvalidPropertyException;
 
 /**
  * Abstract class for translation entities
@@ -54,7 +36,7 @@ abstract class AbstractTranslation implements TranslationInterface
     static protected $propertiesCheckCache = array();
 
     /**
-     * @var \TYPO3\Flow\Persistence\PersistenceManagerInterface
+     * @var \Neos\Flow\Persistence\PersistenceManagerInterface
      * @Flow\Inject
      * @Flow\Transient
      * @CDSRC\Locked
@@ -62,7 +44,7 @@ abstract class AbstractTranslation implements TranslationInterface
     protected $persistenceManager;
 
     /**
-     * @var \TYPO3\Flow\Reflection\ReflectionService
+     * @var \Neos\Flow\Reflection\ReflectionService
      * @Flow\Inject
      * @Flow\Transient
      * @CDSRC\Locked
@@ -87,7 +69,7 @@ abstract class AbstractTranslation implements TranslationInterface
 
 
     /**
-     * @var \TYPO3\Flow\I18n\Locale
+     * @var \Neos\Flow\I18n\Locale
      * @Flow\Transient
      * @CDSRC\Locked
      */
@@ -104,7 +86,7 @@ abstract class AbstractTranslation implements TranslationInterface
     /**
      * Constructor
      *
-     * @param \TYPO3\Flow\I18n\Locale|string $i18nLocale
+     * @param \Neos\Flow\I18n\Locale|string $i18nLocale
      * @param string $parentClassName
      */
     public function __construct($i18nLocale, $parentClassName = null)
@@ -196,6 +178,8 @@ abstract class AbstractTranslation implements TranslationInterface
      * Property getter
      *
      * @param string $property
+     *
+     * @return mixed
      */
     protected function get($property)
     {
@@ -275,12 +259,13 @@ abstract class AbstractTranslation implements TranslationInterface
      * @param string $property
      * @param mixed $value
      *
-     * @return $this
+     * @return AbstractTranslatable
      */
     protected function set($property, $value)
     {
         $_property = $this->sanitizeProperty($property);
         $this->$_property = $value;
+
         return $this->i18nParent;
     }
 

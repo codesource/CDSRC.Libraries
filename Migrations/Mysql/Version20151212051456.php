@@ -1,5 +1,8 @@
 <?php
-namespace TYPO3\Flow\Persistence\Doctrine\Migrations;
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
+namespace Neos\Flow\Persistence\Doctrine\Migrations;
 
 use Doctrine\DBAL\Migrations\AbstractMigration;
 use Doctrine\DBAL\Schema\Schema;

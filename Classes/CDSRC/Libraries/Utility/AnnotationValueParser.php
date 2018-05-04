@@ -1,27 +1,9 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\Utility;
-
-/*******************************************************************************
- *
- *  All rights reserved
- *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ******************************************************************************/
 
 use CDSRC\Libraries\Exceptions\InvalidValueException;
 
@@ -51,6 +33,9 @@ class AnnotationValueParser
      * @param boolean $forceCreation
      *
      * @return mixed
+     *
+     * @throws InvalidValueException
+     * @throws \ReflectionException
      */
     public static function getValueForEntity(array $config, $entity, $type = null, $forceCreation = true)
     {
@@ -66,7 +51,9 @@ class AnnotationValueParser
      * @param boolean $forceCreation
      *
      * @return mixed
-     * @throws \CDSRC\Libraries\Exceptions\InvalidValueException
+     *
+     * @throws InvalidValueException
+     * @throws \ReflectionException
      */
     public static function getValueFor(array $config, array $for = array(), $type = null, $forceCreation = true)
     {
@@ -141,7 +128,12 @@ class AnnotationValueParser
         $_args = array();
         foreach ($arguments as $argument) {
             if (is_array($argument)) {
-                $_args[] = self::getValueFor($argument, $for);
+                try {
+                    $_args[] = self::getValueFor($argument, $for);
+                }catch (\Exception $e){
+                    trigger_error($e->getMessage(), E_USER_WARNING);
+                    $_args[] =  null;
+                }
             } elseif (preg_match('/^\{.*\}$/', $argument) && strlen($key = substr($argument, 1, -1)) > 0 && isset($for[$key])) {
                 $_args[] = &$for[$key];
             } else {
@@ -158,7 +150,9 @@ class AnnotationValueParser
      * @param string $value
      *
      * @return array
-     * @throws \CDSRC\Libraries\Exceptions\InvalidValueException
+     *
+     * @throws InvalidValueException
+     * @throws \ReflectionException
      */
     public static function parseValue($value)
     {
@@ -232,7 +226,9 @@ class AnnotationValueParser
      * @param string $value
      *
      * @return array
-     * @throws \CDSRC\Libraries\Exceptions\InvalidValueException
+     *
+     * @throws InvalidValueException
+     * @throws \ReflectionException
      */
     protected static function parseArray($value)
     {
@@ -272,6 +268,9 @@ class AnnotationValueParser
      * @param string $value
      *
      * @return array
+     *
+     * @throws InvalidValueException
+     * @throws \ReflectionException
      */
     protected static function parseArguments($value)
     {

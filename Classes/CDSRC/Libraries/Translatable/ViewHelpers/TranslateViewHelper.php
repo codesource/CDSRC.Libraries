@@ -1,19 +1,16 @@
 <?php
 /**
- * @copyright Copyright (c) 2015 Weekup
+ * @copyright Copyright (c) 2018 Code-Source
  */
-
 
 namespace CDSRC\Libraries\Translatable\ViewHelpers;
 
 use CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\I18n\Locale;
-use TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper;
+use Neos\Flow\I18n\Locale;
+use Neos\Fluid\Core\ViewHelper\AbstractViewHelper;
 
 /**
  * Class AssetsViewHelper
- *
  */
 class TranslateViewHelper extends AbstractViewHelper
 {

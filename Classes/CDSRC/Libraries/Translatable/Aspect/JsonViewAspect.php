@@ -1,34 +1,16 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\Translatable\Aspect;
 
-
-/* **********************************************************************
- *
- *  Copyright notice
- *
- *  (c) 2015 Matthias Toscanelli <m.toscanelli@code-source.ch>
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- * ******************************************************************** */
-
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Aop\JoinPointInterface;
-use TYPO3\Flow\Mvc\View\JsonView;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Aop\JoinPointInterface;
+use Neos\Flow\Mvc\View\JsonView;
+use Neos\Flow\Reflection\Exception\PropertyNotAccessibleException;
 
 /**
  * An aspect which centralizes the logging of security relevant actions.
@@ -41,10 +23,12 @@ class JsonViewAspect
 
     /**
      *
-     * @Flow\Around("within(TYPO3\Flow\Mvc\View\JsonView) && method(.*->transformObject())")
+     * @Flow\Around("within(Neos\Flow\Mvc\View\JsonView) && method(.*->transformObject())")
      * @param JoinPointInterface $joinPoint The current joinpoint
      *
-     * @return \TYPO3\Flow\Mvc\Controller\Argument
+     * @return \Neos\Flow\Mvc\Controller\Argument
+     *
+     * @throws \ReflectionException
      */
     public function interceptTransformObject(JoinPointInterface $joinPoint)
     {
@@ -90,10 +74,12 @@ class JsonViewAspect
      *
      * @param AbstractTranslatable $object Object to traverse
      * @param array $configuration Configuration for transforming the given object or NULL
-     * @param \TYPO3\Flow\Mvc\View\JsonView $view
+     * @param \Neos\Flow\Mvc\View\JsonView $view
      *
      * @return array Object structure as an array
-     * @throws \TYPO3\Flow\Reflection\Exception\PropertyNotAccessibleException
+     *
+     * @throws PropertyNotAccessibleException
+     * @throws \ReflectionException
      */
     protected function transformTranslatableObject(AbstractTranslatable $object, array $configuration, JsonView $view)
     {
@@ -141,9 +127,11 @@ class JsonViewAspect
      *
      * @param mixed $value The value to transform
      * @param array $configuration Configuration for transforming the value
-     * @param \TYPO3\Flow\Mvc\View\JsonView $view
+     * @param \Neos\Flow\Mvc\View\JsonView $view
      *
      * @return array The transformed value
+     *
+     * @throws \ReflectionException
      */
     protected function transformValue($value, array $configuration, JsonView $view)
     {

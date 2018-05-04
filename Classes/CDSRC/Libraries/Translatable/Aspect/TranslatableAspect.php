@@ -1,42 +1,23 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\Translatable\Aspect;
-
-
-/* **********************************************************************
- *
- *  Copyright notice
- *
- *  (c) 2015 Matthias Toscanelli <m.toscanelli@code-source.ch>
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- * ******************************************************************** */
 
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;
 use CDSRC\Libraries\Translatable\Domain\Model\GenericTranslation;
 use CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface;
 use CDSRC\Libraries\Translatable\Property\TypeConverter\LocaleTypeConverter;
 use Doctrine\ORM\Query;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Aop\JoinPointInterface;
-use TYPO3\Flow\Error\Result;
-use TYPO3\Flow\I18n\Locale;
-use TYPO3\Flow\Mvc\Controller\Argument;
-use TYPO3\Flow\Mvc\Controller\MvcPropertyMappingConfiguration;
-use TYPO3\Flow\Property\TypeConverterInterface;
-use TYPO3\Flow\Reflection\ReflectionService;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Aop\JoinPointInterface;
+use Neos\Flow\Error\Result;
+use Neos\Flow\I18n\Locale;
+use Neos\Flow\Mvc\Controller\Argument;
+use Neos\Flow\Mvc\Controller\MvcPropertyMappingConfiguration;
+use Neos\Flow\Property\TypeConverterInterface;
+use Neos\Flow\Reflection\ReflectionService;
 
 /**
  * An aspect which centralizes the logging of security relevant actions.
@@ -76,10 +57,12 @@ class TranslatableAspect
 
     /**
      *
-     * @Flow\Around("method(TYPO3\Flow\Mvc\Controller\Argument->setValue())")
+     * @Flow\Around("method(Neos\Flow\Mvc\Controller\Argument->setValue())")
      * @param JoinPointInterface $joinPoint The current joinpoint
      *
-     * @return \TYPO3\Flow\Mvc\Controller\Argument
+     * @return Argument
+     *
+     * @throws \ReflectionException
      */
     public function fixTranslatableArguments(JoinPointInterface $joinPoint)
     {
@@ -106,7 +89,7 @@ class TranslatableAspect
     /**
      * Update rawValue argument of "setValue" method
      *
-     * @param \TYPO3\Flow\Aop\JoinPointInterface $joinPoint
+     * @param \Neos\Flow\Aop\JoinPointInterface $joinPoint
      *
      * @return array
      * @throws
@@ -171,8 +154,8 @@ class TranslatableAspect
                 $annotations = $this->reflectionService->getPropertyAnnotations($translationClassName, $value);
                 if (isset($annotations['CDSRC\Libraries\Translatable\Annotations\Locked']) ||
                     isset($annotations['Doctrine\ORM\Mapping\Id']) ||
-                    isset($annotations['TYPO3\Flow\Annotations\Transient']) ||
-                    isset($annotations['TYPO3\Flow\Annotations\Inject'])
+                    isset($annotations['Neos\Flow\Annotations\Transient']) ||
+                    isset($annotations['Neos\Flow\Annotations\Inject'])
                 ) {
                     unset($properties[$key]);
                 }
@@ -284,7 +267,7 @@ class TranslatableAspect
      * @param array $rawValue
      * @param string $translationClassName
      * @param array $translationProperties
-     * @param \TYPO3\Flow\Mvc\Controller\MvcPropertyMappingConfiguration $propertyMappingConfiguration
+     * @param \Neos\Flow\Mvc\Controller\MvcPropertyMappingConfiguration $propertyMappingConfiguration
      *
      * @return void
      */
@@ -322,10 +305,12 @@ class TranslatableAspect
     /**
      * Update validation result paths for arguments
      *
-     * @param \TYPO3\Flow\Aop\JoinPointInterface $joinPoint
+     * @param \Neos\Flow\Aop\JoinPointInterface $joinPoint
      * @param array $translations
      *
      * @return void
+     *
+     * @throws \ReflectionException
      */
     protected function updateValidationPaths(JoinPointInterface &$joinPoint, array $translations)
     {
@@ -400,6 +385,8 @@ class TranslatableAspect
      * @param Result $argumentValidationResults
      *
      * @return void
+     *
+     * @throws \ReflectionException
      */
     protected function overrideTranslationsArgumentValidationResults(Result $argumentValidationResults)
     {

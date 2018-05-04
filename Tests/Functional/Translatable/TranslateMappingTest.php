@@ -1,39 +1,17 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\Tests\Functional\Translatable;
 
-/*******************************************************************************
- *
- *  All rights reserved
- *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ******************************************************************************/
-
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Category;
-use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Entity;
-use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Generic;
-use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Specific;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\CategoryRepository;
-use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\EntityRepository;
-use TYPO3\Flow\Error\Result;
-use TYPO3\Flow\I18n\Locale;
-use TYPO3\Flow\Mvc\Controller\Argument;
-use TYPO3\Flow\Persistence\Doctrine\PersistenceManager;
-use TYPO3\Flow\Tests\FunctionalTestCase;
+use Neos\Flow\Error\Result;
+use Neos\Flow\I18n\Locale;
+use Neos\Flow\Mvc\Controller\Argument;
+use Neos\Flow\Persistence\Doctrine\PersistenceManager;
+use Neos\Flow\Tests\FunctionalTestCase;
 
 /**
  * Test case for translation
@@ -49,13 +27,13 @@ class TranslateMappingTest extends FunctionalTestCase
     static protected $testablePersistenceEnabled = true;
 
     /**
-     * @var \TYPO3\Flow\Validation\ValidatorResolver
+     * @var \Neos\Flow\Validation\ValidatorResolver
      */
     protected $validatorResolver;
 
     /**
      *
-     * @var \TYPO3\Flow\Property\PropertyMapper
+     * @var \Neos\Flow\Property\PropertyMapper
      */
     protected $propertyMapper;
 
@@ -80,8 +58,8 @@ class TranslateMappingTest extends FunctionalTestCase
         if (!$this->persistenceManager instanceof PersistenceManager) {
             $this->markTestSkipped('Doctrine persistence is not enabled');
         }
-        $this->propertyMapper = $this->objectManager->get('TYPO3\Flow\Property\PropertyMapper');
-        $this->validatorResolver = $this->objectManager->get('TYPO3\Flow\Validation\ValidatorResolver');
+        $this->propertyMapper = $this->objectManager->get('Neos\Flow\Property\PropertyMapper');
+        $this->validatorResolver = $this->objectManager->get('Neos\Flow\Validation\ValidatorResolver');
 
         $this->localeDe = new Locale('de-CH');
         $this->localeFr = new Locale('fr-CH');
@@ -125,12 +103,12 @@ class TranslateMappingTest extends FunctionalTestCase
                 (string)$this->localeIt => $itTitle,
             )
         );
-        $argument = new Argument('category', \CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Category::class);
+        $argument = new Argument('category', Category::class);
         $argument->setRequired(true);
 
         $propertyMappingConfiguration = $argument->getPropertyMappingConfiguration();
         $propertyMappingConfiguration->allowAllProperties('icon', 'color');
-        $propertyMappingConfiguration->setTypeConverterOption('TYPO3\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
+        $propertyMappingConfiguration->setTypeConverterOption('Neos\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \Neos\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
 
         $argument->setValue($category);
 
@@ -173,12 +151,12 @@ class TranslateMappingTest extends FunctionalTestCase
             )
         );
 
-        $argument = new Argument('category', \CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Category::class);
+        $argument = new Argument('category', Category::class);
         $argument->setRequired(true);
 
         $propertyMappingConfiguration = $argument->getPropertyMappingConfiguration();
         $propertyMappingConfiguration->allowAllProperties('icon', 'color');
-        $propertyMappingConfiguration->setTypeConverterOption('TYPO3\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);
+        $propertyMappingConfiguration->setTypeConverterOption('Neos\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \Neos\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);
 
         $argument->setValue($data);
 
@@ -196,12 +174,12 @@ class TranslateMappingTest extends FunctionalTestCase
      * @test
      */
     public function testValidationResultRewriting(){
-        $argument = new Argument('category', \CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Category::class);
+        $argument = new Argument('category', Category::class);
         $argument->setRequired(true);
 
         $propertyMappingConfiguration = $argument->getPropertyMappingConfiguration();
         $propertyMappingConfiguration->allowAllProperties('icon', 'color');
-        $propertyMappingConfiguration->setTypeConverterOption('TYPO3\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
+        $propertyMappingConfiguration->setTypeConverterOption('Neos\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \Neos\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
 
         $argument->setValidator($this->validatorResolver->getBaseValidatorConjunction($argument->getDataType()));
 

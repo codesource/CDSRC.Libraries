@@ -1,9 +1,12 @@
 <?php
+/**
+ * @copyright Copyright (c) 2018 Code-Source
+ */
 
 namespace CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model;
 
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation;
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * @Flow\Entity
