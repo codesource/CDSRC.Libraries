@@ -10,6 +10,7 @@ use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation;
 use CDSRC\Libraries\Translatable\Domain\Model\GenericTranslation;
 use CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface;
 use CDSRC\Libraries\Translatable\Property\TypeConverter\LocaleTypeConverter;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
