@@ -9,12 +9,16 @@ use CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Model\IpTraceable as Enti
 use CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Repository\IpTraceableRepository;
 use CDSRC\Libraries\Traceable\Utility\GeneralUtility;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
+use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Neos\Flow\Tests\FunctionalTestCase;
 
 /**
  * Test case to test IpTraceable functionality
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
+ *
+ * @method assertEquals($value, $expected)
+ * @method markTestSkipped($message)
  */
 class IpTraceableTest extends FunctionalTestCase
 {
@@ -44,6 +48,8 @@ class IpTraceableTest extends FunctionalTestCase
 
     /**
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function testIpTracing()
     {

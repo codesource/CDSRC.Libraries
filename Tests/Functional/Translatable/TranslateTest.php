@@ -10,6 +10,7 @@ use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Generic;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Specific;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\EntityRepository;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
+use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Neos\Flow\Tests\FunctionalTestCase;
 
 /**
@@ -62,6 +63,8 @@ class TranslateTest extends FunctionalTestCase
      * Tests object data type against generic translation
      *
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function testObjectOnGenericTranslation()
     {
@@ -108,6 +111,8 @@ class TranslateTest extends FunctionalTestCase
      * Tests object data type against generic translation
      *
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function testObjectOnSpecificTranslation()
     {

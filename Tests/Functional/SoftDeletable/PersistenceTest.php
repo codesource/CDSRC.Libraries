@@ -10,10 +10,15 @@ use CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Model\Entity2;
 use CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Repository\Entity2Repository;
 use CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Repository\EntityRepository;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
+use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Neos\Flow\Tests\FunctionalTestCase;
 
 /**
  * Test case for entity delete and recover
+ *
+ * @method assertEquals($value, $expected)
+ * @method assertTrue($value)
+ * @method markTestSkipped($message)
  *
  */
 class PersistenceTest extends FunctionalTestCase
@@ -49,6 +54,8 @@ class PersistenceTest extends FunctionalTestCase
 
     /**
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function softDeleteEntity()
     {
@@ -67,6 +74,8 @@ class PersistenceTest extends FunctionalTestCase
 
     /**
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function deletedEntitiesAreNotInSelectQueries()
     {
@@ -83,6 +92,8 @@ class PersistenceTest extends FunctionalTestCase
 
     /**
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function futureDeletedEntitiesAreStillSelectable()
     {
@@ -106,6 +117,8 @@ class PersistenceTest extends FunctionalTestCase
 
     /**
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function disableCheckForEntity()
     {

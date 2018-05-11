@@ -10,9 +10,14 @@ use Doctrine\ORM\Mapping as ORM;
 use CDSRC\Libraries\Traceable\Domain\Model\TimestampableTrait;
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;
 use CDSRC\Libraries\Translatable\Annotations as CDSRC;
+use Neos\Flow\I18n\Locale;
 
 /**
  * @Flow\Entity
+ *
+ * @method Category setTitle($title, Locale $locale = null, $force = false)
+ * @method string getTitle(Locale $locale = null)
+ * @method CategoryTranslation getTranslationByLocale(Locale $locale, $forceCreation = false)
  */
 class Category extends AbstractTranslatable
 {

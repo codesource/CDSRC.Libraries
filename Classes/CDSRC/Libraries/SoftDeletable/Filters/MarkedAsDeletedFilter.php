@@ -7,10 +7,12 @@ namespace CDSRC\Libraries\SoftDeletable\Filters;
 
 use CDSRC\Libraries\SoftDeletable\Annotations\SoftDeletable;
 use CDSRC\Libraries\SoftDeletable\Exceptions\PropertyNotFoundException;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\Filter\SQLFilter;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Core\Bootstrap;
+use ReflectionException;
 
 /**
  * ORM query filter to get only active entities
@@ -50,7 +52,8 @@ class MarkedAsDeletedFilter extends SQLFilter
      * {@inheritdoc}
      *
      * @throws PropertyNotFoundException
-     * @throws \ReflectionException
+     * @throws ReflectionException
+     * @throws DBALException
      */
     public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias)
     {
@@ -71,7 +74,7 @@ class MarkedAsDeletedFilter extends SQLFilter
                 $conn = $this->getEntityManager()->getConnection();
                 $platform = $conn->getDatabasePlatform();
 
-                $column = $targetEntity->getQuotedColumnName($annotation->deleteProperty, $platform);
+                $column = $platform->quoteIdentifier($annotation->deleteProperty);
                 $addCondSql = $platform->getIsNullExpression($targetTableAlias . '.' . $column);
                 if ($annotation->timeAware) {
                     $addCondSql .= ' OR ' . $targetTableAlias . '.' . $column . ' > ' . $conn->quote(date('Y-m-d H:i:s'));
@@ -104,7 +107,7 @@ class MarkedAsDeletedFilter extends SQLFilter
      *
      * @return \Doctrine\ORM\EntityManager
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     protected function getEntityManager()
     {

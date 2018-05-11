@@ -6,8 +6,10 @@
 namespace CDSRC\Libraries\SoftDeletable\Domain\Repository;
 
 use CDSRC\Libraries\SoftDeletable\Annotations\SoftDeletable;
+use Doctrine\ORM\EntityManagerInterface;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Persistence\Repository;
+use Neos\Flow\Reflection\ReflectionService;
 
 /**
  * Abstract repository for SoftDeletable entities
@@ -32,13 +34,13 @@ abstract class AbstractRepository extends Repository
 
     /**
      * @Flow\Inject
-     * @var \Doctrine\Common\Persistence\ObjectManager
+     * @var EntityManagerInterface
      */
     protected $entityManager;
 
     /**
      * @Flow\Inject
-     * @var \Neos\Flow\Reflection\ReflectionService
+     * @var ReflectionService
      */
     protected $reflectionService;
 

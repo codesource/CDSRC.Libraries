@@ -7,10 +7,12 @@ namespace CDSRC\Libraries\Tests\Functional\Translatable;
 
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Category;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\CategoryRepository;
-use Neos\Flow\Error\Result;
+use Neos\Error\Messages\Result;
+use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
 use Neos\Flow\I18n\Locale;
 use Neos\Flow\Mvc\Controller\Argument;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
+use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Neos\Flow\Tests\FunctionalTestCase;
 
 /**
@@ -61,10 +63,13 @@ class TranslateMappingTest extends FunctionalTestCase
         $this->propertyMapper = $this->objectManager->get('Neos\Flow\Property\PropertyMapper');
         $this->validatorResolver = $this->objectManager->get('Neos\Flow\Validation\ValidatorResolver');
 
-        $this->localeDe = new Locale('de-CH');
-        $this->localeFr = new Locale('fr-CH');
-        $this->localeEn = new Locale('en-US');
-        $this->localeIt = new Locale('it-IT');
+        try {
+            $this->localeDe = new Locale('de-CH');
+            $this->localeFr = new Locale('fr-CH');
+            $this->localeEn = new Locale('en-US');
+            $this->localeIt = new Locale('it-IT');
+        } catch (InvalidLocaleIdentifierException $e) {
+        }
     }
 
     /**
@@ -107,7 +112,7 @@ class TranslateMappingTest extends FunctionalTestCase
         $argument->setRequired(true);
 
         $propertyMappingConfiguration = $argument->getPropertyMappingConfiguration();
-        $propertyMappingConfiguration->allowAllProperties('icon', 'color');
+        $propertyMappingConfiguration->allowProperties('icon', 'color');
         $propertyMappingConfiguration->setTypeConverterOption('Neos\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \Neos\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
 
         $argument->setValue($category);
@@ -126,6 +131,8 @@ class TranslateMappingTest extends FunctionalTestCase
 
     /**
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function testMappingExistingTranslation(){
         $category = new Category();
@@ -155,7 +162,7 @@ class TranslateMappingTest extends FunctionalTestCase
         $argument->setRequired(true);
 
         $propertyMappingConfiguration = $argument->getPropertyMappingConfiguration();
-        $propertyMappingConfiguration->allowAllProperties('icon', 'color');
+        $propertyMappingConfiguration->allowProperties('icon', 'color');
         $propertyMappingConfiguration->setTypeConverterOption('Neos\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \Neos\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);
 
         $argument->setValue($data);
@@ -178,7 +185,7 @@ class TranslateMappingTest extends FunctionalTestCase
         $argument->setRequired(true);
 
         $propertyMappingConfiguration = $argument->getPropertyMappingConfiguration();
-        $propertyMappingConfiguration->allowAllProperties('icon', 'color');
+        $propertyMappingConfiguration->allowProperties('icon', 'color');
         $propertyMappingConfiguration->setTypeConverterOption('Neos\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \Neos\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
 
         $argument->setValidator($this->validatorResolver->getBaseValidatorConjunction($argument->getDataType()));

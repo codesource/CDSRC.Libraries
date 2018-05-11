@@ -25,7 +25,6 @@ class AbstractTranslationValidator extends AbstractValidator
      * @param mixed $value
      *
      * @return void
-     * @throws \Neos\Flow\Validation\Exception\InvalidValidationOptionsException if invalid validation options have been specified in the constructor
      */
     protected function isValid($value)
     {

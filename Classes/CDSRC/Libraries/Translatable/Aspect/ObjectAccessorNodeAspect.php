@@ -5,15 +5,17 @@
 
 namespace CDSRC\Libraries\Translatable\Aspect;
 
+use CDSRC\Libraries\Exceptions\InvalidMethodException;
 use CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
+use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
 use Neos\Flow\I18n\Locale;
-use Neos\Flow\Reflection\Exception\PropertyNotAccessibleException;
-use Neos\Flow\Reflection\ObjectAccess;
-use Neos\Fluid\Core\Parser\SyntaxTree\ObjectAccessorNode;
-use Neos\Fluid\Core\Parser\SyntaxTree\RenderingContextAwareInterface;
-use Neos\Fluid\Core\Parser\SyntaxTree\TemplateObjectAccessInterface;
+use Neos\FluidAdaptor\Core\Parser\SyntaxTree\TemplateObjectAccessInterface;
+use Neos\Utility\ObjectAccess;
+use Neos\Utility\Exception\PropertyNotAccessibleException;
+use TYPO3Fluid\Fluid\Core\Parser\SyntaxTree\ObjectAccessorNode;
+use TYPO3Fluid\Fluid\Core\Parser\TemplateProcessorInterface;
 
 /**
  * Class ObjectAccessorAspect
@@ -28,6 +30,9 @@ class ObjectAccessorNodeAspect
      * @param JoinPointInterface $joinPoint The current joinpoint
      *
      * @return mixed
+     *
+     * @throws InvalidLocaleIdentifierException
+     * @throws InvalidMethodException
      */
     public function getPropertyPathForTranslatableObject(JoinPointInterface $joinPoint)
     {
@@ -70,13 +75,16 @@ class ObjectAccessorNodeAspect
                     // TODO: Implement with generic translation
                     if (in_array($property, $subject->getTranslatableFields()) && $locale !== '') {
                         $getter = 'get' . ucfirst($property);
+                        if(!property_exists($subject, $getter)){
+                            throw new InvalidMethodException($getter . ' does not exists in ' . get_class($subject), 1525785451);
+                        }
                         $subject = $subject->$getter(new Locale($locale));
                         $i += 2;
                     }
                 }
             }
 
-            if ($subject instanceof RenderingContextAwareInterface) {
+            if ($subject instanceof TemplateProcessorInterface) {
                 $subject->setRenderingContext($renderingContext);
             }
             if ($subject instanceof TemplateObjectAccessInterface) {

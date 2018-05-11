@@ -5,6 +5,7 @@
 
 namespace CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model;
 
+use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation;
 use Neos\Flow\Annotations as Flow;
 
@@ -19,4 +20,23 @@ class CategoryTranslation extends AbstractTranslation
      * @Flow\Validate(type="StringLength", options={"maximum"=200})
      */
     protected $title;
+
+    /**
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->title;
+    }
+
+    /**
+     * @param string $title
+     * @return AbstractTranslatable
+     */
+    public function setTitle(string $title)
+    {
+        $this->title = $title;
+
+        return $this->i18nParent;
+    }
 }

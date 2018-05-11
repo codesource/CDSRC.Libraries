@@ -11,15 +11,17 @@ use CDSRC\Libraries\Translatable\Domain\Model\GenericTranslation;
 use CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface;
 use CDSRC\Libraries\Translatable\Property\TypeConverter\LocaleTypeConverter;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Query;
+use Doctrine\ORM\QueryBuilder;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
-use Neos\Flow\Error\Result;
-use Neos\Flow\I18n\Locale;
+use Neos\Error\Messages\Result;
 use Neos\Flow\Mvc\Controller\Argument;
 use Neos\Flow\Mvc\Controller\MvcPropertyMappingConfiguration;
-use Neos\Flow\Property\TypeConverterInterface;
 use Neos\Flow\Reflection\ReflectionService;
+use ReflectionClass;
+use ReflectionException;
 
 /**
  * An aspect which centralizes the logging of security relevant actions.
@@ -37,7 +39,7 @@ class TranslatableAspect
     protected $reflectionService;
 
     /**
-     * @var \Doctrine\Common\Persistence\ObjectManager
+     * @var \Doctrine\ORM\EntityManager
      * @Flow\Inject
      */
     protected $entityManager;
@@ -63,6 +65,9 @@ class TranslatableAspect
      * @param JoinPointInterface $joinPoint The current joinpoint
      *
      * @return Argument
+     *
+     * @throws ReflectionException
+     * @throws \Exception
      */
     public function fixTranslatableArguments(JoinPointInterface $joinPoint)
     {
@@ -94,6 +99,7 @@ class TranslatableAspect
      * @param JoinPointInterface $joinPoint
      *
      * @return array
+     * @throws \Exception
      */
     protected function updateRawValueMethodArgument(JoinPointInterface &$joinPoint)
     {
@@ -246,7 +252,8 @@ class TranslatableAspect
         $className,
         $parentIdentifier,
         $identifierPropertyName = 'Persistence_Object_Identifier'
-    ) {
+    )
+    {
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = $this->entityManager->createQueryBuilder();
 
@@ -275,7 +282,8 @@ class TranslatableAspect
         $translationClassName,
         array $translationProperties,
         MvcPropertyMappingConfiguration $propertyMappingConfiguration
-    ) {
+    )
+    {
         $index = 0;
         $propertyMappingConfiguration->allowProperties('translations');
         $propertyMappingConfiguration->setTargetTypeForSubProperty('translations',
@@ -311,9 +319,10 @@ class TranslatableAspect
      * Update validation result paths for arguments
      *
      * @param JoinPointInterface $joinPoint
-     * @param array $translations
      *
      * @return void
+     *
+     * @throws ReflectionException
      */
     protected function updateValidationPaths(JoinPointInterface &$joinPoint)
     {
@@ -327,10 +336,13 @@ class TranslatableAspect
 
     /**
      * @param Result $validationResults
-     * @param AbstractTranslatable|null $translatableObject£
+     * @param AbstractTranslatable|null $translatableObject
+     *
+     * @throws ReflectionException
      */
-    protected function mergeTranslationValidationResults(Result &$validationResults, AbstractTranslatable $translatableObject = null){
-        if($translatableObject) {
+    protected function mergeTranslationValidationResults(Result &$validationResults, AbstractTranslatable $translatableObject = null)
+    {
+        if ($translatableObject) {
             $translationsValidationResults = $validationResults->forProperty('translations');
             if ($translationsValidationResults->hasMessages()) {
                 $flattenedErrors = $this->sanitizeValidationResultsPropertyKeys($translationsValidationResults->getFlattenedErrors());
@@ -366,7 +378,8 @@ class TranslatableAspect
                     }
                 }
             }
-            $reflectionClass = new \ReflectionClass($translatableObject);
+            $reflectionClass = new ReflectionClass($translatableObject);
+            /** @var Result $result  */
             foreach ($validationResults->getSubResults() as $property => &$result) {
                 if ($property !== 'translations' && $reflectionClass->hasProperty($property)) {
                     $reflectionProperty = $reflectionClass->getProperty($property);
@@ -415,6 +428,8 @@ class TranslatableAspect
      * @param Result $argumentValidationResults
      *
      * @return void
+     *
+     * @throws ReflectionException
      */
     protected function overrideTranslationsArgumentValidationResults(Result $argumentValidationResults)
     {
@@ -434,17 +449,19 @@ class TranslatableAspect
      * @param MvcPropertyMappingConfiguration $propertyMappingConfiguration
      *
      * @return array
+     *
+     * @throws \Exception
      */
     protected function updateRawValueForEntity(
         $className,
         array &$rawValue,
         MvcPropertyMappingConfiguration $propertyMappingConfiguration
-    ) {
-        $translations = array();
+    )
+    {
         $translationClassName = $this->getTranslationTable($className);
         if ($translationClassName instanceof GenericTranslation) {
             // TODO: Implement generic version
-            throw \Exception('NOT IMPLEMENTED');
+            throw new \Exception('NOT IMPLEMENTED');
         } else {
             $translationProperties = $this->getTranslationProperties($translationClassName);
             $translations = $this->getTranslationsAndUpdateRawValue($rawValue, $translationProperties);
@@ -459,9 +476,10 @@ class TranslatableAspect
                 );
             }
             $this->updateRawValueNestedEntities($className, $rawValue, $propertyMappingConfiguration);
+
+            return $translations;
         }
 
-        return $translations;
     }
 
     /**
@@ -469,13 +487,15 @@ class TranslatableAspect
      * @param array $rawValue
      * @param MvcPropertyMappingConfiguration $propertyMappingConfiguration
      *
-     * @return mixed
+     * @throws \Exception
      */
     protected function updateRawValueNestedEntities(
         $className,
         &$rawValue,
         MvcPropertyMappingConfiguration $propertyMappingConfiguration
-    ) {
+    )
+    {
+        /** @var ClassMetadataInfo $class */
         $class = $this->entityManager->getClassMetadata($className);
         foreach ($class->associationMappings as $field => $association) {
             if ($field !== 'translations' && isset($rawValue[$field])) {
@@ -483,18 +503,22 @@ class TranslatableAspect
                     if ($association['type'] & ClassMetadata::TO_MANY) {
                         foreach ($rawValue[$field] as $key => &$value) {
                             if (is_array($value)) {
+                                /** @var MvcPropertyMappingConfiguration $configuration */
+                                $configuration = $propertyMappingConfiguration->forProperty($field . '.' . $key);
                                 $this->updateRawValueForEntity(
                                     $association['targetEntity'],
                                     $value,
-                                    $propertyMappingConfiguration->forProperty($field . '.' . $key)
+                                    $configuration
                                 );
                             }
                         }
                     } else {
+                        /** @var MvcPropertyMappingConfiguration $configuration */
+                        $configuration = $propertyMappingConfiguration->forProperty($field);
                         $this->updateRawValueForEntity(
                             $association['targetEntity'],
                             $rawValue[$field],
-                            $propertyMappingConfiguration->forProperty($field)
+                            $configuration
                         );
                     }
                 }

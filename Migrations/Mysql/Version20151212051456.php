@@ -4,6 +4,8 @@
  */
 namespace Neos\Flow\Persistence\Doctrine\Migrations;
 
+use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Migrations\AbortMigrationException;
 use Doctrine\DBAL\Migrations\AbstractMigration;
 use Doctrine\DBAL\Schema\Schema;
 
@@ -24,6 +26,9 @@ class Version20151212051456 extends AbstractMigration
      * @param Schema $schema
      *
      * @return void
+     *
+     * @throws AbortMigrationException
+     * @throws DBALException
      */
 	public function up(Schema $schema)
     {
@@ -37,6 +42,9 @@ class Version20151212051456 extends AbstractMigration
      * @param Schema $schema
      *
      * @return void
+     *
+     * @throws AbortMigrationException
+     * @throws DBALException
      */
 	public function down(Schema $schema)
     {
@@ -53,7 +61,7 @@ class Version20151212051456 extends AbstractMigration
      */
     protected function renameTablesBasedOnTableMapping($tablesMapping){
 
-        $foreignKeysConstraints = $this->findExistingForeignKeyContraintsForTableName();
+        $foreignKeysConstraints = $this->findExistingForeignKeyConstraintsForTableName();
 
         // Drop existing foreign keys
         foreach($foreignKeysConstraints as $constraint){
@@ -88,7 +96,7 @@ class Version20151212051456 extends AbstractMigration
      *
      * @return array
      */
-	protected function findExistingForeignKeyContraintsForTableName()
+	protected function findExistingForeignKeyConstraintsForTableName()
     {
         return $queryBuilderTemplate = $this->connection->createQueryBuilder()
             ->select('*')

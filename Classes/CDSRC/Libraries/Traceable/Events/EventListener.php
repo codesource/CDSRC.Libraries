@@ -10,8 +10,10 @@ use CDSRC\Libraries\Traceable\Annotations\Traceable;
 use CDSRC\Libraries\Traceable\Exceptions\VarAnnotationNotFoundException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\OnFlushEventArgs;
+use Doctrine\ORM\ORMException;
 use Doctrine\ORM\UnitOfWork;
 use Neos\Flow\Annotations as Flow;
+use ReflectionException;
 
 
 /**
@@ -42,7 +44,8 @@ class EventListener
      *
      * @throws InvalidValueException
      * @throws VarAnnotationNotFoundException
-     * @throws \ReflectionException
+     * @throws ReflectionException
+     * @throws ORMException
      */
     public function onFlush(OnFlushEventArgs $eventArgs)
     {
@@ -66,8 +69,10 @@ class EventListener
      * @param EntityManager $entityManager
      * @param UnitOfWork $unitOfWork
      *
+     * @throws InvalidValueException
      * @throws VarAnnotationNotFoundException
-     * @throws \ReflectionException
+     * @throws ORMException
+     * @throws ReflectionException
      */
     protected function onFlushForInsertions(&$entity, EntityManager &$entityManager, UnitOfWork &$unitOfWork)
     {
@@ -120,7 +125,7 @@ class EventListener
      * @return array
      *
      * @throws VarAnnotationNotFoundException
-     * @throws \ReflectionException
+     * @throws ReflectionException
      * @throws InvalidValueException
      */
     protected function updateEntityPropertyValue(&$entity, $className, $propertyName, Traceable $annotation)
@@ -145,7 +150,7 @@ class EventListener
      * @return string
      *
      * @throws VarAnnotationNotFoundException
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     protected function getPropertyType($className, $propertyName, \ReflectionProperty $property = null)
     {
@@ -170,7 +175,8 @@ class EventListener
      *
      * @throws VarAnnotationNotFoundException
      * @throws InvalidValueException
-     * @throws \ReflectionException
+     * @throws ReflectionException
+     * @throws ORMException
      */
     protected function onFlushForUpdates(&$entity, EntityManager &$entityManager, UnitOfWork &$unitOfWork)
     {

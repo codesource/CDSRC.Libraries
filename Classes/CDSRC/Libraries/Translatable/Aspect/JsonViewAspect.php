@@ -10,7 +10,9 @@ use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
 use Neos\Flow\Mvc\View\JsonView;
-use Neos\Flow\Reflection\Exception\PropertyNotAccessibleException;
+use Neos\Flow\Property\Exception\InvalidPropertyException;
+use Neos\Flow\Reflection\Exception\InvalidClassException;
+use ReflectionException;
 
 /**
  * An aspect which centralizes the logging of security relevant actions.
@@ -28,7 +30,9 @@ class JsonViewAspect
      *
      * @return \Neos\Flow\Mvc\Controller\Argument
      *
-     * @throws \ReflectionException
+     * @throws InvalidClassException
+     * @throws InvalidPropertyException
+     * @throws ReflectionException
      */
     public function interceptTransformObject(JoinPointInterface $joinPoint)
     {
@@ -59,10 +63,12 @@ class JsonViewAspect
         $joinPoint->setMethodArgument('configuration', $configuration);
 
         $propertiesToRender = $joinPoint->getAdviceChain()->proceed($joinPoint);
+        /** @var JsonView $view */
+        $view = $joinPoint->getProxy();
         $translatablePropertiesToRender = $this->transformTranslatableObject(
             $object,
             $configuration,
-            $joinPoint->getProxy()
+            $view
         );
 
         return array_merge($propertiesToRender, $translatablePropertiesToRender);
@@ -78,8 +84,9 @@ class JsonViewAspect
      *
      * @return array Object structure as an array
      *
-     * @throws PropertyNotAccessibleException
-     * @throws \ReflectionException
+     * @throws InvalidPropertyException
+     * @throws InvalidClassException
+     * @throws ReflectionException
      */
     protected function transformTranslatableObject(AbstractTranslatable $object, array $configuration, JsonView $view)
     {
@@ -131,7 +138,7 @@ class JsonViewAspect
      *
      * @return array The transformed value
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     protected function transformValue($value, array $configuration, JsonView $view)
     {

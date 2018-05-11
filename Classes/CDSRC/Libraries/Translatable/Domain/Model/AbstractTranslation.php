@@ -10,9 +10,10 @@ use CDSRC\Libraries\Translatable\Annotations\Locked;
 use CDSRC\Libraries\Translatable\Annotations\Translatable;
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
 use Neos\Flow\I18n\Locale;
-use Neos\Flow\Object\Exception\InvalidClassException;
 use Neos\Flow\Property\Exception\InvalidPropertyException;
+use Neos\Flow\Reflection\Exception\InvalidClassException;
 
 /**
  * Abstract class for translation entities
@@ -86,8 +87,10 @@ abstract class AbstractTranslation implements TranslationInterface
     /**
      * Constructor
      *
-     * @param \Neos\Flow\I18n\Locale|string $i18nLocale
+     * @param Locale|string $i18nLocale
      * @param string $parentClassName
+     *
+     * @throws InvalidLocaleIdentifierException
      */
     public function __construct($i18nLocale, $parentClassName = null)
     {
@@ -101,7 +104,11 @@ abstract class AbstractTranslation implements TranslationInterface
     public function getI18nLocale()
     {
         if ($this->i18nLocaleObject === null && strlen($this->i18nLocale) > 0) {
-            $this->i18nLocaleObject = new Locale($this->i18nLocale);
+            try {
+                $this->i18nLocaleObject = new Locale($this->i18nLocale);
+            } catch (\Exception $e) {
+                $this->i18nLocaleObject = null;
+            }
         }
 
         return $this->i18nLocaleObject;
@@ -109,6 +116,7 @@ abstract class AbstractTranslation implements TranslationInterface
 
     /**
      * {@inheritdoc}
+     * @throws InvalidLocaleIdentifierException
      */
     public function setI18nLocale($locale)
     {
@@ -137,7 +145,7 @@ abstract class AbstractTranslation implements TranslationInterface
     public function setI18nParent(TranslatableInterface $parent, $bidirectional = true)
     {
         $this->i18nParent = $parent;
-        if(strlen($this->parentClassName) === 0){
+        if (strlen($this->parentClassName) === 0) {
             $this->parentClassName = get_class($this->i18nParent);
         }
         if ($bidirectional) {
@@ -154,6 +162,9 @@ abstract class AbstractTranslation implements TranslationInterface
      * @param array $arguments
      *
      * @return mixed|null
+     *
+     * @throws InvalidClassException
+     * @throws InvalidPropertyException
      */
     public function __call($method, $arguments)
     {
@@ -171,6 +182,7 @@ abstract class AbstractTranslation implements TranslationInterface
                 return $this->set($property, $arguments[0]);
             }
         }
+
         return null;
     }
 
@@ -180,6 +192,9 @@ abstract class AbstractTranslation implements TranslationInterface
      * @param string $property
      *
      * @return mixed
+     *
+     * @throws InvalidClassException
+     * @throws InvalidPropertyException
      */
     protected function get($property)
     {
@@ -194,6 +209,7 @@ abstract class AbstractTranslation implements TranslationInterface
      * @param string $property
      *
      * @return string
+     *
      * @throws InvalidClassException
      * @throws InvalidPropertyException
      */
@@ -201,11 +217,11 @@ abstract class AbstractTranslation implements TranslationInterface
     {
         $_property = lcfirst($property);
         if ($this->parentClassName === null) {
-            if(isset($this->i18nParent)) {
+            if (isset($this->i18nParent)) {
                 $this->parentClassName = get_class($this->i18nParent);
-            }else{
+            } else {
                 $parentClassName = substr(get_called_class(), 0, -11);
-                if(class_exists($parentClassName)){
+                if (class_exists($parentClassName)) {
                     $this->parentClassName = $parentClassName;
                 }
             }
@@ -219,8 +235,9 @@ abstract class AbstractTranslation implements TranslationInterface
             return $_property;
         }
 
-        if (in_array($_property, call_user_func($this->parentClassName . '::getTranslatableFields'))){
+        if (in_array($_property, call_user_func($this->parentClassName . '::getTranslatableFields'))) {
             self::$propertiesCheckCache[$this->parentClassName][] = $_property;
+
             return $_property;
         }
 
@@ -260,6 +277,9 @@ abstract class AbstractTranslation implements TranslationInterface
      * @param mixed $value
      *
      * @return AbstractTranslatable
+     *
+     * @throws InvalidClassException
+     * @throws InvalidPropertyException
      */
     protected function set($property, $value)
     {

@@ -67,6 +67,8 @@ class GeneralUtility
      * Retrieve current authenticated account
      *
      * @return \Neos\Flow\Security\Account|NULL
+     *
+     * @throws \Neos\Flow\Exception
      */
     public static function getAuthenticatedAccount()
     {
