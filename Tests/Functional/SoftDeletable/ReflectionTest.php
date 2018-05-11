@@ -10,6 +10,7 @@ use Neos\Flow\Tests\FunctionalTestCase;
 /**
  * Test case for entity reflection testing
  *
+ * @method assertTrue($value)
  */
 class ReflectionTest extends FunctionalTestCase
 {

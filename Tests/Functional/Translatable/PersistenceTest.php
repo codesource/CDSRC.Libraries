@@ -7,12 +7,17 @@ namespace CDSRC\Libraries\Tests\Functional\Translatable;
 
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Entity;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
+use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Neos\Flow\Tests\FunctionalTestCase;
 
 /**
  * Test case for persistence
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
+ *
+ * @method assertEquals($value, $expected)
+ * @method markTestSkipped($message)
+ * @method markTestIncomplete($message)
  */
 class PersistenceTest extends FunctionalTestCase {
 
@@ -44,6 +49,8 @@ class PersistenceTest extends FunctionalTestCase {
 
     /**
      * @return void
+     *
+     * @throws IllegalObjectTypeException
      */
     public function setUp() {
         parent::setUp();
@@ -59,6 +66,8 @@ class PersistenceTest extends FunctionalTestCase {
 
     /**
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function genericEntitiesArePersistedAndReconstituted() {
         $this->markTestIncomplete(
@@ -83,6 +92,8 @@ class PersistenceTest extends FunctionalTestCase {
 
     /**
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function specificEntitiesArePersistedAndReconstituted() {
         $this->markTestIncomplete(
@@ -107,6 +118,8 @@ class PersistenceTest extends FunctionalTestCase {
 
     /**
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function genericAndSpecificAreSame() {
         $this->markTestIncomplete(
@@ -141,7 +154,8 @@ class PersistenceTest extends FunctionalTestCase {
 
     /**
      * dataProvider for translation testing
-     * 
+     *
+     * @throws IllegalObjectTypeException
      */
     public function generateData() {
         $entityDefault = new Entity('default');
@@ -199,7 +213,8 @@ class PersistenceTest extends FunctionalTestCase {
      * Helper which inserts example data into the database.
      *
      * @param string $type
-     * 
+     *
+     * @throws IllegalObjectTypeException
      */
     protected function insertExampleEntity($type = 'Generic') {
         switch ($type) {

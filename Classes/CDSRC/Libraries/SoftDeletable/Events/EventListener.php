@@ -31,6 +31,7 @@ class EventListener
      *
      * @throws PropertyNotFoundException
      * @throws \ReflectionException
+     * @throws \Doctrine\ORM\ORMException
      */
     public function onFlush(OnFlushEventArgs $eventArgs)
     {

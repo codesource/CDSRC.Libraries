@@ -13,6 +13,9 @@ use Neos\Flow\Tests\UnitTestCase;
  * Test case for the traceable annotation
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
+ *
+ * @method assertEquals($value, $expected)
+ * @method setExpectedException($class, $message, $code)
  */
 class AnnotationTest extends UnitTestCase {
 

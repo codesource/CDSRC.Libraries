@@ -8,12 +8,19 @@ namespace CDSRC\Libraries\Tests\Functional\Traceable;
 use CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Model\Timestampable;
 use CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Repository\TimestampableRepository;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
+use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Neos\Flow\Tests\FunctionalTestCase;
 
 /**
  * Test case to test Timestampable functionality
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
+ *
+ * @method assertEquals($value, $expected)
+ * @method assertNotEquals($value, $expected)
+ * @method assertNull($value)
+ * @method assertNotNull($value)
+ * @method markTestSkipped($message)
  */
 class TimestampableTest extends FunctionalTestCase {
 
@@ -40,6 +47,8 @@ class TimestampableTest extends FunctionalTestCase {
 
     /**
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function testOnCreateEvent() {
         $entity = new Timestampable();
@@ -51,6 +60,8 @@ class TimestampableTest extends FunctionalTestCase {
 
     /**
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function testOnUpdateEvent() {
         $entity = new Timestampable();
@@ -74,6 +85,8 @@ class TimestampableTest extends FunctionalTestCase {
 
     /**
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function testOnChangeEvent() {
         $entity = new Timestampable();

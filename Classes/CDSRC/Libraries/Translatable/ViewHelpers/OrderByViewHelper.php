@@ -6,7 +6,7 @@ namespace CDSRC\Libraries\Translatable\ViewHelpers;
 
 
 use Neos\Flow\I18n\Locale;
-use Neos\Fluid\Core\ViewHelper\AbstractViewHelper;
+use Neos\FluidAdaptor\Core\ViewHelper\AbstractViewHelper;
 
 class OrderByViewHelper extends AbstractViewHelper
 {

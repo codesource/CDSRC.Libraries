@@ -8,12 +8,17 @@ namespace CDSRC\Libraries\Tests\Functional\Traceable;
 use CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Model\UserTraceable as Entity;
 use CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Repository\UserTraceableRepository as EntityRepository;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
+use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Neos\Flow\Security\Account;
 use Neos\Flow\Tests\FunctionalTestCase;
 
 /**
  * Test case for entity delete and recover
  *
+ * @method assetEquals($value, $expected)
+ * @method assetNotEquals($value, $expected)
+ * @method assetNull($value)
+ * @method markTestSkipped($value)
  */
 class UserTraceableTest extends FunctionalTestCase {
 
@@ -42,9 +47,11 @@ class UserTraceableTest extends FunctionalTestCase {
 		}
         $this->entityRepository = new EntityRepository();
 	}
-    
+
     /**
      * @test
+     *
+     * @throws IllegalObjectTypeException
      */
     public function testUserTracing(){
 		$account = new Account();

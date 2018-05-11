@@ -9,6 +9,11 @@ use CDSRC\Libraries\Translatable\Annotations as CDSRC;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
+use Neos\Flow\I18n\Locale;
+use Neos\Flow\Property\Exception\InvalidDataTypeException;
+use Neos\Flow\Property\Exception\InvalidPropertyException;
+use Neos\Flow\Reflection\Exception\InvalidClassException;
 
 /**
  * @Flow\Entity
@@ -30,8 +35,10 @@ class GenericTranslation extends AbstractTranslation implements TranslationInter
     /**
      * Constructor
      *
-     * @param \Neos\Flow\I18n\Locale|string $i18nLocale
+     * @param Locale|string $i18nLocale
+     *
      * @param string $parentClassName
+     * @throws InvalidLocaleIdentifierException
      */
     public function __construct($i18nLocale, $parentClassName = '')
     {
@@ -45,6 +52,9 @@ class GenericTranslation extends AbstractTranslation implements TranslationInter
      * @param string $property
      *
      * @return mixed|null
+     *
+     * @throws InvalidPropertyException
+     * @throws InvalidClassException
      */
     protected function get($property)
     {
@@ -64,7 +74,11 @@ class GenericTranslation extends AbstractTranslation implements TranslationInter
      * @param string $property
      * @param mixed $value
      *
-     * @return \CDSRC\Libraries\Translatable\Domain\Model\GenericTranslation
+     * @return GenericTranslation
+     *
+     * @throws InvalidClassException
+     * @throws InvalidPropertyException
+     * @throws InvalidDataTypeException
      */
     protected function set($property, $value)
     {

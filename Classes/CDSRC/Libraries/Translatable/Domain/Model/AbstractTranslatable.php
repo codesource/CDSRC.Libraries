@@ -325,6 +325,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
      * @param array $arguments
      *
      * @return mixed|null
+     * @throws \Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException
      */
     public function __call($method, $arguments)
     {

@@ -5,6 +5,7 @@
 namespace CDSRC\Libraries\Translatable\Property\TypeConverter;
 
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
 use Neos\Flow\I18n\Locale;
 use Neos\Flow\Property\Exception\InvalidPropertyMappingConfigurationException;
 use Neos\Flow\Property\PropertyMappingConfigurationInterface;
@@ -20,6 +21,9 @@ class LocaleTypeConverter extends AbstractTypeConverter
 
     /**
      * {@inheritdoc}
+     *
+     * @throws InvalidLocaleIdentifierException
+     * @throws InvalidPropertyMappingConfigurationException
      */
     public function convertFrom(
         $source,

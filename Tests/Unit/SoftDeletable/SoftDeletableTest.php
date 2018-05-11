@@ -11,6 +11,10 @@ use Neos\Flow\Tests\UnitTestCase;
  * Test case for the translatable trait
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
+ *
+ * @method assertEquals($value, $expected)
+ * @method assertFalse($value)
+ * @method assertTrue($value)
  */
 class SoftDeletableTest extends UnitTestCase {
     
