@@ -53,7 +53,7 @@ class ObjectAccessorNodeAspect
         }
 
         $renderingContext = $joinPoint->getMethodArgument('renderingContext');
-        $subject = $renderingContext->getTemplateVariableContainer();
+        $subject = $renderingContext->getVariableProvider();
         for ($i = 0; $i < $countPropertyPathSegments; $i++) {
             try {
                 $pathSegment = $propertyPathSegments[$i];
