@@ -39,7 +39,7 @@ class TranslatableAspect
     protected $reflectionService;
 
     /**
-     * @var \Doctrine\ORM\EntityManager
+     * @var \Doctrine\ORM\EntityManagerInterface
      * @Flow\Inject
      */
     protected $entityManager;
