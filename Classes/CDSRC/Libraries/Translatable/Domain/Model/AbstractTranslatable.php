@@ -41,7 +41,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
      * List of translations
      *
      * @var \Doctrine\Common\Collections\Collection<\CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation>
-     * @ORM\OneToMany(mappedBy="i18nParent", cascade={"all"}, orphanRemoval=true)
+     * @ORM\OneToMany(mappedBy="i18nParent", cascade={"all"}, orphanRemoval=true, fetch="LAZY")
      */
     protected $translations;
 
