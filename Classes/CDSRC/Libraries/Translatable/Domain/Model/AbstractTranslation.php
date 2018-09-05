@@ -79,6 +79,7 @@ abstract class AbstractTranslation implements TranslationInterface
     /**
      * @var \CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable
      * @ORM\ManyToOne(inversedBy="translations")
+     * @ORM\JoinColumn(onDelete="CASCADE")
      * @Flow\Validate(type="NotEmpty")
      * @CDSRC\Locked
      */
