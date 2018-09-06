@@ -21,7 +21,7 @@ trait UserTraceableTrait {
      *
      * @var Account
      * @CDSRC\Traceable(on="create", value="\CDSRC\Libraries\Traceable\Utility\GeneralUtility::getAuthenticatedAccount()", autoCreate=false)
-     * @ORM\ManyToOne
+     * @ORM\ManyToOne(targetEntity="\Neos\Flow\Security\Account")
      * @ORM\Column(nullable=true)
      */
     protected $createdBy = NULL;
@@ -31,7 +31,7 @@ trait UserTraceableTrait {
      *
      * @var Account
      * @CDSRC\Traceable(on="update", value="\CDSRC\Libraries\Traceable\Utility\GeneralUtility::getAuthenticatedAccount()", autoCreate=false)
-     * @ORM\ManyToOne
+     * @ORM\ManyToOne(targetEntity="\Neos\Flow\Security\Account")
      * @ORM\Column(nullable=true)
      */
     protected $updatedBy = NULL;
