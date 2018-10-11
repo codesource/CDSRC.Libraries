@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
 use Neos\Flow\I18n\Locale;
+use Neos\Flow\ObjectManagement\Exception\InvalidObjectException;
 use Neos\Flow\Property\Exception\InvalidPropertyException;
 use Neos\Flow\Reflection\Exception\InvalidClassException;
 
@@ -78,7 +79,7 @@ abstract class AbstractTranslation implements TranslationInterface
 
     /**
      * @var \CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable
-     * @ORM\ManyToOne(inversedBy="translations")
+     * @ORM\ManyToOne(inversedBy="translations", cascade={})
      * @ORM\JoinColumn(onDelete="CASCADE")
      * @Flow\Validate(type="NotEmpty")
      * @CDSRC\Locked
@@ -146,9 +147,8 @@ abstract class AbstractTranslation implements TranslationInterface
     public function setI18nParent(TranslatableInterface $parent, $bidirectional = true)
     {
         $this->i18nParent = $parent;
-        if (strlen($this->parentClassName) === 0) {
-            $this->parentClassName = get_class($this->i18nParent);
-        }
+        $this->getParentClassName();
+
         if ($bidirectional) {
             $this->i18nParent->addTranslation($this, false);
         }
@@ -217,16 +217,7 @@ abstract class AbstractTranslation implements TranslationInterface
     protected function sanitizeProperty($property)
     {
         $_property = lcfirst($property);
-        if ($this->parentClassName === null) {
-            if (isset($this->i18nParent)) {
-                $this->parentClassName = get_class($this->i18nParent);
-            } else {
-                $parentClassName = substr(get_called_class(), 0, -11);
-                if (class_exists($parentClassName)) {
-                    $this->parentClassName = $parentClassName;
-                }
-            }
-        }
+        $this->getParentClassName();
 
         if (strlen($this->parentClassName) <= 0) {
             throw new InvalidClassException('Parent class name has not been set.', 1428243279);
@@ -290,4 +281,63 @@ abstract class AbstractTranslation implements TranslationInterface
         return $this->i18nParent;
     }
 
+    /**
+     * @return string
+     */
+    protected function getParentClassName()
+    {
+        if ($this->parentClassName === null || strlen($this->parentClassName) === 0) {
+            if (isset($this->i18nParent)) {
+                $this->parentClassName = get_class($this->i18nParent);
+            } else {
+                $parentClassName = substr(get_called_class(), 0, -11);
+                if (class_exists($parentClassName)) {
+                    $this->parentClassName = $parentClassName;
+                }
+            }
+        }
+
+        return $this->parentClassName;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getParentTranslatableFields()
+    {
+        $parentClassName = $this->getParentClassName();
+        if ($parentClassName) {
+            return call_user_func($this->parentClassName . '::getTranslatableFields');
+        }
+
+        return [];
+    }
+
+
+    /**
+     * @param AbstractTranslation $transaction
+     *
+     * @return AbstractTranslation
+     *
+     * @throws InvalidClassException
+     * @throws InvalidObjectException
+     * @throws InvalidPropertyException
+     */
+    public function mergeWithTransaction(AbstractTranslation $transaction)
+    {
+        $currentClassName = get_class($this);
+        $otherClassName = get_class($transaction);
+        if ($currentClassName !== $otherClassName) {
+            throw new InvalidObjectException(
+                sprintf('Transactions are not same class "%s" <> "%s"', $currentClassName, $otherClassName),
+                1539266857
+            );
+        }
+
+        foreach ($this->getParentTranslatableFields() as $field) {
+            $this->set($field, $transaction->get($field));
+        }
+
+        return $this;
+    }
 }
