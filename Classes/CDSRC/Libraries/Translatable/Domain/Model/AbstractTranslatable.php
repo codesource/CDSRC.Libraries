@@ -246,13 +246,25 @@ abstract class AbstractTranslatable implements TranslatableInterface
      */
     public function setTranslations(ArrayCollection $translations)
     {
+        $translationsToRemove = [];
+
+        /** @var AbstractTranslation $translation */
         foreach ($this->getTranslations() as $translation) {
-            if (!$translations->contains($translation)) {
-                $this->removeTranslation($translation);
+            /** @var AbstractTranslation $newTranslation */
+            foreach ($translations as $newTranslation) {
+                if ((string)$newTranslation->getI18nLocale() === (string)$translation->getI18nLocale()) {
+                    $translation->mergeWithTransaction($newTranslation);
+                    $translations->remove($translations->indexOf($newTranslation));
+                    break 2;
+                }
             }
+            $translationsToRemove[] = $translation;
         }
         foreach ($translations as $translation) {
             $this->addTranslation($translation);
+        }
+        foreach ($translationsToRemove as $translation) {
+            $this->removeTranslation($translation);
         }
 
         return $this;
