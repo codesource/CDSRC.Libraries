@@ -49,12 +49,12 @@ interface TranslatableInterface
      *
      * @return TranslatableInterface
      */
-    public function removeAllTranslations();
+    public function removeAllTranslations(): TranslatableInterface;
 
     /**
      * Replace all translations by the given collection
      *
-     * @param \Doctrine\Common\Collections\ArrayCollection<\CDSRC\Libraries\Translatable\Domain\Model\TranslationInterface> $translations
+     * @param ArrayCollection<TranslationInterface> $translations
      *
      * @return TranslatableInterface
      */
@@ -63,41 +63,41 @@ interface TranslatableInterface
     /**
      * Get all translations
      *
-     * @return \Doctrine\Common\Collections\ArrayCollection<\CDSRC\Libraries\Translatable\Domain\Model\TranslationInterface>
+     * @return ArrayCollection<TranslationInterface>
      */
-    public function getTranslations();
+    public function getTranslations(): ArrayCollection;
 
     /**
      * Get translation class name
      *
      * @return string
      */
-    public function getTranslationClassName();
+    public function getTranslationClassName(): string;
 
     /**
      * Get fallback on translation status
      *
-     * @return boolean
+     * @return bool
      */
-    public function getFallbackOnTranslation();
+    public function getFallbackOnTranslation(): bool;
 
     /**
      * Check if object has a translation for a specific locale
      *
      * @param Locale $locale
      *
-     * @return boolean
+     * @return bool
      */
-    public function hasTranslationForLocale(Locale $locale);
+    public function hasTranslationForLocale(Locale $locale): bool;
 
     /**
      * Set fallback on translation status
      *
-     * @param boolean $fallback
+     * @param bool $fallback
      *
      * @return TranslatableInterface
      */
-    public function setFallbackOnTranslation($fallback);
+    public function setFallbackOnTranslation(bool $fallback);
 
     /**
      * Return unannotated translatable fields
@@ -105,12 +105,12 @@ interface TranslatableInterface
      *
      * @return array
      */
-    public static function getTranslatableFields();
+    public static function getTranslatableFields(): array;
 
     /**
      * Return the list of all locales that have a translation
      *
      * @return array
      */
-    public function getAvailableLocales();
+    public function getAvailableLocales(): array;
 }

@@ -8,6 +8,7 @@ namespace CDSRC\Libraries\SoftDeletable\Domain\Repository;
 use CDSRC\Libraries\SoftDeletable\Annotations\SoftDeletable;
 use Doctrine\ORM\EntityManagerInterface;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Persistence\QueryResultInterface;
 use Neos\Flow\Persistence\Repository;
 use Neos\Flow\Reflection\ReflectionService;
 
@@ -25,24 +26,24 @@ abstract class AbstractRepository extends Repository
      *
      * @var boolean
      */
-    protected $enableDeleted = false;
+    protected bool $enableDeleted = false;
 
     /**
      * @var SoftDeletable|boolean
      */
-    protected $deleteAnnotation = null;
+    protected SoftDeletable|bool|null $deleteAnnotation = null;
 
     /**
      * @Flow\Inject
      * @var EntityManagerInterface
      */
-    protected $entityManager;
+    protected EntityManagerInterface $entityManager;
 
     /**
      * @Flow\Inject
      * @var ReflectionService
      */
-    protected $reflectionService;
+    protected ReflectionService $reflectionService;
 
     /**
      *
@@ -58,7 +59,7 @@ abstract class AbstractRepository extends Repository
     /**
      * {@inheritdoc}
      */
-    public function findAll()
+    public function findAll(): QueryResultInterface
     {
         if ($this->enableDeleted) {
             $this->entityManager->getFilters()->disable('cdsrc.libraries.softdeletable.filter');
@@ -73,7 +74,7 @@ abstract class AbstractRepository extends Repository
     /**
      * {@inheritdoc}
      */
-    public function countAll()
+    public function countAll(): int
     {
         if ($this->enableDeleted) {
             $this->entityManager->getFilters()->disable('cdsrc.libraries.softdeletable.filter');

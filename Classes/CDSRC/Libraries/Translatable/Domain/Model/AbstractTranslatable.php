@@ -5,10 +5,16 @@
 
 namespace CDSRC\Libraries\Translatable\Domain\Model;
 
+use CDSRC\Libraries\Translatable\Annotations\Translatable;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
 use Neos\Flow\I18n\Locale;
+use Neos\Flow\ObjectManagement\Exception\InvalidObjectException;
+use Neos\Flow\Property\Exception\InvalidPropertyException;
+use Neos\Flow\Reflection\Exception\InvalidClassException;
 
 /**
  * Abstract class for translatable entities
@@ -24,34 +30,34 @@ abstract class AbstractTranslatable implements TranslatableInterface
 
     /**
      *
-     * @var string
+     * @var string|null
      * @Flow\Transient
      */
-    protected $translationClassName = null;
+    protected ?string $translationClassName = null;
 
     /**
      * Will fallback to default language if no translation found
      *
-     * @var boolean
+     * @var bool
      * @Flow\Transient
      */
-    protected $fallbackOnTranslation = true;
+    protected bool $fallbackOnTranslation = true;
 
     /**
      * List of translations
      *
-     * @var \Doctrine\Common\Collections\Collection<\CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation>
+     * @var Collection<AbstractTranslation>
      * @ORM\OneToMany(mappedBy="i18nParent", cascade={"all"}, orphanRemoval=true, fetch="LAZY")
      */
-    protected $translations;
+    protected Collection $translations;
 
     /**
      * The current translation object to use (set it using setCurrentLocale)
      *
      * @Flow\Transient
-     * @var TranslationInterface
+     * @var TranslationInterface|null
      */
-    protected $curTranslation;
+    protected ?TranslationInterface $curTranslation;
 
 
     /**
@@ -81,7 +87,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @return string
      */
-    public function getTranslationClassName()
+    public function getTranslationClassName(): string
     {
         if ($this->translationClassName === null) {
             $specificTranslationClassName = get_called_class() . 'Translation';
@@ -96,21 +102,23 @@ abstract class AbstractTranslatable implements TranslatableInterface
     }
 
     /**
-     * Get fallback on translation status
+     *  Get fallback on translation status
+     *
+     * @return bool
      */
-    public function getFallbackOnTranslation()
+    public function getFallbackOnTranslation(): bool
     {
-        $this->fallbackOnTranslation;
+        return $this->fallbackOnTranslation;
     }
 
     /**
      * Set fallback on translation status
      *
-     * @param boolean $fallback
+     * @param bool $fallback
      *
-     * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
+     * @return TranslatableInterface
      */
-    public function setFallbackOnTranslation($fallback)
+    public function setFallbackOnTranslation(bool $fallback): TranslatableInterface
     {
         $this->fallbackOnTranslation = $fallback;
 
@@ -120,26 +128,31 @@ abstract class AbstractTranslatable implements TranslatableInterface
     /**
      * Check if object has a translation for a specific locale
      *
-     * @param \Neos\Flow\I18n\Locale $locale
+     * @param Locale $locale
      *
-     * @return boolean
+     * @return bool
      */
-    public function hasTranslationForLocale(Locale $locale)
+    public function hasTranslationForLocale(Locale $locale): bool
     {
         return $this->getTranslationObjectForLocale($locale) !== null;
     }
 
     /**
      * Add a new translation to object
-     * Notice: Only one translation by locale and object should exists
+     * Notice: Only one translation by locale and object should exist
      *
-     * @param \CDSRC\Libraries\Translatable\Domain\Model\TranslationInterface $translation
+     * @param TranslationInterface $translation
      *
-     * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
+     * @return AbstractTranslatable
      */
-    public function addTranslation(TranslationInterface $translation)
+    public function addTranslation(TranslationInterface $translation): AbstractTranslatable
     {
-        if (!($this->getTranslations()->contains($translation) || $this->hasTranslationForLocale($translation->getI18nLocale()))) {
+        try {
+            $hasTranslation = $this->hasTranslationForLocale($translation->getI18nLocale());
+        } catch (InvalidLocaleIdentifierException $e) {
+            $hasTranslation = false;
+        }
+        if (!($this->getTranslations()->contains($translation) || $hasTranslation)) {
             $this->getTranslations()->add($translation);
             $translation->setI18nParent($this);
         }
@@ -150,11 +163,11 @@ abstract class AbstractTranslatable implements TranslatableInterface
     /**
      * Remove a translation object
      *
-     * @param \CDSRC\Libraries\Translatable\Domain\Model\TranslationInterface $translation
+     * @param TranslationInterface $translation
      *
-     * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
+     * @return TranslatableInterface
      */
-    public function removeTranslation(TranslationInterface $translation)
+    public function removeTranslation(TranslationInterface $translation): TranslatableInterface
     {
         if ($this->getTranslations()->contains($translation)) {
             $this->getTranslations()->removeElement($translation);
@@ -166,11 +179,11 @@ abstract class AbstractTranslatable implements TranslatableInterface
     /**
      * Remove a translation by locale
      *
-     * @param \Neos\Flow\I18n\Locale $locale
+     * @param Locale $locale
      *
-     * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
+     * @return TranslatableInterface
      */
-    public function removeTranslationByLocale(Locale $locale)
+    public function removeTranslationByLocale(Locale $locale): TranslatableInterface
     {
         $translation = $this->getTranslationObjectForLocale($locale);
         if ($translation !== null) {
@@ -183,9 +196,9 @@ abstract class AbstractTranslatable implements TranslatableInterface
     /**
      * Remove all translations
      *
-     * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
+     * @return TranslatableInterface
      */
-    public function removeAllTranslations()
+    public function removeAllTranslations(): TranslatableInterface
     {
         foreach ($this->getTranslations() as $translation) {
             $this->removeTranslation($translation);
@@ -201,9 +214,9 @@ abstract class AbstractTranslatable implements TranslatableInterface
      * @param Locale $locale
      * @param bool $forceCreation
      *
-     * @return null|TranslationInterface
+     * @return TranslationInterface|null
      */
-    public function getTranslationByLocale(Locale $locale, $forceCreation = false)
+    public function getTranslationByLocale(Locale $locale, bool $forceCreation = false): TranslationInterface|null
     {
         $translation = $this->getTranslationObjectForLocale($locale);
         if ($translation !== null) {
@@ -224,9 +237,9 @@ abstract class AbstractTranslatable implements TranslatableInterface
      * @param Locale $locale
      * @param bool $forceCreation
      *
-     * @return $this
+     * @return AbstractTranslatable
      */
-    public function setCurrentLocale(Locale $locale, $forceCreation = false)
+    public function setCurrentLocale(Locale $locale, bool $forceCreation = false): AbstractTranslatable
     {
         $this->curTranslation = $this->getTranslationObjectForLocale($locale);
 
@@ -240,11 +253,16 @@ abstract class AbstractTranslatable implements TranslatableInterface
     /**
      * Replace all translations by the given collection
      *
-     * @param ArrayCollection <\CDSRC\Libraries\Translatable\Domain\Model\TranslationInterface> $translations
+     * @param ArrayCollection<TranslationInterface> $translations
      *
-     * @return \CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface
+     * @return TranslatableInterface
+     *
+     * @throws InvalidClassException
+     * @throws InvalidLocaleIdentifierException
+     * @throws InvalidObjectException
+     * @throws InvalidPropertyException
      */
-    public function setTranslations(ArrayCollection $translations)
+    public function setTranslations(ArrayCollection $translations) : TranslatableInterface
     {
         $translationsToRemove = [];
 
@@ -273,32 +291,28 @@ abstract class AbstractTranslatable implements TranslatableInterface
     /**
      * Get the locale set as current, if any.
      *
-     * @return null|Locale
+     * @return Locale|null
      */
-    public function getCurrentLocale()
+    public function getCurrentLocale(): ?Locale
     {
-        if ($this->curTranslation !== null) {
-            return $this->curTranslation->getI18nLocale();
+        try {
+            return $this->curTranslation?->getI18nLocale();
+        } catch (InvalidLocaleIdentifierException $e) {
+            return null;
         }
-
-        return null;
     }
 
     /**
      * Get all translations
      *
-     * @return \Doctrine\Common\Collections\ArrayCollection<\CDSRC\Libraries\Translatable\Domain\Model\TranslationInterface>
+     * @return ArrayCollection<TranslationInterface>
      */
-    public function getTranslations()
+    public function getTranslations(): ArrayCollection
     {
-        if ($this->translations === null) {
-            $this->translations = new ArrayCollection();
-        }
-
-        return $this->translations;
+        return $this->translations ?? new ArrayCollection();
     }
 
-    public function resetCurrentLocale()
+    public function resetCurrentLocale(): void
     {
         $this->curTranslation = null;
     }
@@ -309,9 +323,9 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @return array
      */
-    public static function getTranslatableFields()
+    public static function getTranslatableFields(): array
     {
-        return array();
+        return [];
     }
 
     /**
@@ -319,11 +333,14 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @return array
      */
-    public function getAvailableLocales()
+    public function getAvailableLocales(): array
     {
-        $locales = array();
+        $locales = [];
         foreach ($this->getTranslations() as $translation) {
-            $locales[] = (string)$translation->getI18nLocale();
+            try {
+                $locales[] = (string)$translation->getI18nLocale();
+            } catch (InvalidLocaleIdentifierException $e) {
+            }
         }
 
         return array_unique($locales);
@@ -337,17 +354,17 @@ abstract class AbstractTranslatable implements TranslatableInterface
      * @param array $arguments
      *
      * @return mixed|null
-     * @throws \Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException
+     * @throws InvalidLocaleIdentifierException
      */
-    public function __call($method, $arguments)
+    public function __call(string $method, array $arguments)
     {
-        // By default we use the locale set with setCurrentLocale
+        // By default, we use the locale set with setCurrentLocale
         /** @var TranslationInterface $translation */
         $translation = $this->curTranslation;
 
         $firstParam = reset($arguments);
         $countArgument = count($arguments);
-        if ($countArgument === 1 && strpos($method, 'set') === 0 && is_array($firstParam)) {
+        if ($countArgument === 1 && str_starts_with($method, 'set') && is_array($firstParam)) {
 
             // If function is a setter and argument is an array of translation, iterate through translation
             foreach ($firstParam as $locale => $value) {
@@ -355,7 +372,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
             }
 
             return $this;
-        } elseif ($countArgument === 0 && preg_match('/^getAll/', $method)) {
+        } elseif ($countArgument === 0 && str_starts_with($method, 'getAll')) {
             $values = [];
             $method = preg_replace('/^getAll/', 'get', $method);
             foreach ($this->getTranslations() as $translation) {
@@ -368,15 +385,15 @@ abstract class AbstractTranslatable implements TranslatableInterface
             return $values;
         } else {
             $lastParam = end($arguments);
-            if ($lastParam && $lastParam instanceof Locale) {
+            if ($lastParam instanceof Locale) {
                 // If a locale is passed as last parameter, then use the associated translation
                 $translation = $this->getTranslationObjectForLocale($lastParam);
                 array_pop($arguments); // Remove the last parameter as we just "consumed" it
 
                 // If function is a getter, try to see if we have a fallback Locale
-                if ($this->getFallbackOnTranslation() && strpos($method, 'get') === 0) {
+                if ($this->getFallbackOnTranslation() && str_starts_with($method, 'get')) {
                     $newLastParam = end($arguments);
-                    if ($newLastParam && $newLastParam instanceof Locale) {
+                    if ($newLastParam instanceof Locale) {
                         $originalTranslation = $this->getTranslationObjectForLocale($newLastParam);
                         array_pop($arguments); // Remove the last parameter as we just "consumed" it
                         if ($originalTranslation !== null) {
@@ -412,16 +429,19 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @param Locale $locale
      *
-     * @return null|TranslationInterface
+     * @return TranslationInterface|null
      */
-    protected function getTranslationObjectForLocale(Locale $locale)
+    protected function getTranslationObjectForLocale(Locale $locale): ?TranslationInterface
     {
         /** @var TranslationInterface $translation */
         foreach ($this->getTranslations() as $translation) {
-            if ((string)$translation->getI18nLocale() === (string)$locale) {
-                $translation->setI18nParent($this, false);
+            try {
+                if ((string)$translation->getI18nLocale() === (string)$locale) {
+                    $translation->setI18nParent($this, false);
 
-                return $translation;
+                    return $translation;
+                }
+            } catch (InvalidLocaleIdentifierException $e) {
             }
         }
 
@@ -433,9 +453,9 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @param Locale $locale
      *
-     * @return bool|TranslationInterface
+     * @return TranslationInterface|null
      */
-    protected function createTranslation(Locale $locale)
+    protected function createTranslation(Locale $locale): ?TranslationInterface
     {
         $translation = $this->getTranslationObjectForLocale($locale);
         if ($translation === null) {

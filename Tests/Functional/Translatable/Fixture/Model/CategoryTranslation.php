@@ -19,12 +19,12 @@ class CategoryTranslation extends AbstractTranslation
      * @Flow\Validate(type="NotEmpty")
      * @Flow\Validate(type="StringLength", options={"maximum"=200})
      */
-    protected $title;
+    protected string $title;
 
     /**
      * @return string
      */
-    public function getTitle()
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -33,7 +33,7 @@ class CategoryTranslation extends AbstractTranslation
      * @param string $title
      * @return AbstractTranslatable
      */
-    public function setTitle(string $title)
+    public function setTitle(string $title): AbstractTranslatable
     {
         $this->title = $title;
 

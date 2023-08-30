@@ -27,16 +27,16 @@ class Category extends AbstractTranslatable
 	 * @var string
 	 * @Flow\Validate(type="NotEmpty")
 	 */
-	protected $color;
+	protected string $color;
 
 	/** @var string */
-	protected $icon;
+	protected string $icon;
 
     /**
-     * @var boolean
+     * @var bool
      * @ORM\Column(name="is_active")
      */
-    protected $isActive = true;
+    protected bool $isActive = true;
 
 
     public function __construct()
@@ -53,13 +53,15 @@ class Category extends AbstractTranslatable
 	 * @param string $color
 	 * @return Category
 	 */
-	public function setColor($color) {
+	public function setColor(string $color): Category
+    {
 		$this->color = $color;
         return $this;
 	}
 
 	/** @return string */
-	public function getIcon() {
+	public function getIcon(): string
+    {
 		return $this->icon;
 	}
 
@@ -67,21 +69,24 @@ class Category extends AbstractTranslatable
 	 * @param string $icon
 	 * @return Category
 	 */
-	public function setIcon($icon) {
+	public function setIcon(string $icon): Category
+    {
 		$this->icon = $icon;
         return $this;
 	}
 
-    /** @return boolean */
-    public function getIsActive() {
+    /** @return bool */
+    public function getIsActive() : bool
+    {
         return $this->isActive;
     }
 
     /**
-     * @param boolean $isActive
+     * @param bool $isActive
      * @return Category
      */
-    public function setIsActive($isActive) {
+    public function setIsActive(bool $isActive): Category
+    {
         $this->isActive = $isActive;
         return $this;
     }
@@ -91,8 +96,8 @@ class Category extends AbstractTranslatable
 	 *
 	 * @return array
 	 */
-	public static function getTranslatableFields()
-	{
+	public static function getTranslatableFields(): array
+    {
 		return array('title');
 	}
 }

@@ -7,17 +7,20 @@ namespace CDSRC\Libraries\SoftDeletable\Filters;
 
 use CDSRC\Libraries\SoftDeletable\Annotations\SoftDeletable;
 use CDSRC\Libraries\SoftDeletable\Exceptions\PropertyNotFoundException;
-use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\Filter\SQLFilter;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Core\Bootstrap;
+use Neos\Flow\Reflection\ReflectionService;
 use ReflectionException;
+use ReflectionProperty;
 
 /**
  * ORM query filter to get only active entities
  *
- * @Flow\Proxy(value=false)
+ * @Flow\Proxy
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
@@ -29,31 +32,35 @@ class MarkedAsDeletedFilter extends SQLFilter
      *
      * @var array
      */
-    protected static $data = array();
+    protected static array $data = array();
 
     /**
      * Disabled class name for filter
      *
      * @var array
      */
-    protected static $disabled = array();
+    protected static array $disabled = array();
 
     /**
-     * @var \Neos\Flow\Reflection\ReflectionService
+     * @var ReflectionService|null
      */
-    protected $reflectionService;
+    protected ?ReflectionService $reflectionService;
 
     /**
-     * @var \Doctrine\ORM\EntityManager
+     * @var EntityManager|null
      */
-    protected $entityManager;
+    protected ?EntityManager $entityManager;
 
     /**
      * {@inheritdoc}
      *
+     * @param ClassMetadata $targetEntity
+     * @param $targetTableAlias
+     *
+     * @return false|mixed|string
+     *
+     * @throws Exception
      * @throws PropertyNotFoundException
-     * @throws ReflectionException
-     * @throws DBALException
      */
     public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias)
     {
@@ -85,15 +92,15 @@ class MarkedAsDeletedFilter extends SQLFilter
             }
         }
 
-        return self::$data[$dataKey] ? self::$data[$dataKey] : '';
+        return self::$data[$dataKey] ?: '';
     }
 
     /**
      * Get reflection service from bootstrap
      *
-     * @return \Neos\Flow\Reflection\ReflectionService
+     * @return ReflectionService
      */
-    protected function getReflectionService()
+    protected function getReflectionService(): ReflectionService
     {
         if ($this->reflectionService === null) {
             $this->reflectionService = Bootstrap::$staticObjectManager->get('Neos\Flow\Reflection\ReflectionService');
@@ -105,15 +112,12 @@ class MarkedAsDeletedFilter extends SQLFilter
     /**
      * Get entityManager from parent
      *
-     * @return \Doctrine\ORM\EntityManager
-     *
-     * @throws ReflectionException
+     * @return EntityManager
      */
-    protected function getEntityManager()
+    protected function getEntityManager(): EntityManager
     {
         if ($this->entityManager === null) {
-            $reflexion = new \ReflectionProperty('Doctrine\ORM\Query\Filter\SQLFilter', 'em');
-            $reflexion->setAccessible(true);
+            $reflexion = new ReflectionProperty('Doctrine\ORM\Query\Filter\SQLFilter', 'em');
             $this->entityManager = $reflexion->getValue($this);
         }
 

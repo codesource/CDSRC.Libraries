@@ -29,14 +29,14 @@ class IpTraceableTest extends FunctionalTestCase
     static protected $testablePersistenceEnabled = true;
 
     /**
-     * @var \CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Repository\IpTraceableRepository
+     * @var IpTraceableRepository
      */
-    protected $entityRepository;
+    protected IpTraceableRepository $entityRepository;
 
     /**
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         if (!$this->persistenceManager instanceof PersistenceManager) {

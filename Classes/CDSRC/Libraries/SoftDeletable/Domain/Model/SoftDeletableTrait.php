@@ -6,6 +6,7 @@
 namespace CDSRC\Libraries\SoftDeletable\Domain\Model;
 
 use CDSRC\Libraries\SoftDeletable\Annotations as CDSRC;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Security\Account;
@@ -24,34 +25,34 @@ trait SoftDeletableTrait
     /**
      * Store when the entity has been deleted
      *
-     * @var \DateTime
+     * @var DateTime|null
      * @ORM\Column(nullable=true)
      */
-    protected $deletedAt = null;
+    protected ?DateTime $deletedAt = null;
 
     /**
      * Who has deleted this entity
      *
-     * @var \Neos\Flow\Security\Account
+     * @var Account|null
      * @ORM\ManyToOne
      * @ORM\Column(nullable=true)
      */
-    protected $deletedBy = null;
+    protected ?Account $deletedBy = null;
 
     /**
      * Force entity to be hard delete
      *
-     * @var boolean
+     * @var bool
      * @Flow\Transient
      */
-    protected $forceDelete = false;
+    protected bool $forceDelete = false;
 
     /**
      * Returns deletedAt.
      *
-     * @return \DateTime
+     * @return DateTime
      */
-    public function getDeletedAt()
+    public function getDeletedAt(): DateTime
     {
         return $this->deletedAt;
     }
@@ -59,11 +60,11 @@ trait SoftDeletableTrait
     /**
      * Sets deletedAt.
      *
-     * @param \Datetime $deletedAt
+     * @param DateTime|null $deletedAt
      *
-     * @return $this
+     * @return SoftDeletableTrait
      */
-    public function setDeletedAt(\DateTime $deletedAt = null)
+    public function setDeletedAt(?DateTime $deletedAt = null): static
     {
         $this->deletedAt = $deletedAt;
 
@@ -73,9 +74,9 @@ trait SoftDeletableTrait
     /**
      * Returns deletedAt.
      *
-     * @return \Neos\Flow\Security\Account
+     * @return Account|null
      */
-    public function getDeletedBy()
+    public function getDeletedBy(): ?Account
     {
         return $this->deletedBy;
     }
@@ -83,11 +84,11 @@ trait SoftDeletableTrait
     /**
      * Sets deletedAt.
      *
-     * @param \Neos\Flow\Security\Account $deletedBy
+     * @param Account|null $deletedBy
      *
-     * @return $this
+     * @return SoftDeletableTrait
      */
-    public function setDeletedBy(Account $deletedBy = null)
+    public function setDeletedBy(?Account $deletedBy = null): static
     {
         $this->deletedBy = $deletedBy;
 
@@ -97,9 +98,9 @@ trait SoftDeletableTrait
     /**
      * Returns hard delete status
      *
-     * @return boolean
+     * @return bool
      */
-    public function getForceDelete()
+    public function getForceDelete(): bool
     {
         return $this->forceDelete;
     }
@@ -107,11 +108,11 @@ trait SoftDeletableTrait
     /**
      * Force/UnForce hard delete
      *
-     * @param boolean $force
+     * @param bool $force
      *
-     * @return $this
+     * @return SoftDeletableTrait
      */
-    public function forceHardDelete($force = true)
+    public function forceHardDelete(bool $force = true): static
     {
         $this->forceDelete = $force;
 
@@ -121,9 +122,9 @@ trait SoftDeletableTrait
     /**
      * Is this entity deleted?
      *
-     * @return boolean
+     * @return bool
      */
-    public function isDeleted()
+    public function isDeleted(): bool
     {
         return $this->deletedAt !== null;
     }

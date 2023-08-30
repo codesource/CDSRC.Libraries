@@ -35,7 +35,7 @@ class LocaleTypeConverter extends AbstractTypeConverter
         if (is_string($locale) && strlen($locale) > 0) {
             $locale = new Locale($locale);
         }
-        if (is_object($locale) && $locale instanceof Locale) {
+        if ($locale instanceof Locale) {
             return $locale;
         }
         throw new InvalidPropertyMappingConfigurationException(

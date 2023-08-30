@@ -30,14 +30,15 @@ class TimestampableTest extends FunctionalTestCase {
     static protected $testablePersistenceEnabled = TRUE;
 
     /**
-     * @var \CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Repository\TimestampableRepository
+     * @var TimestampableRepository
      */
-    protected $entityRepository;
+    protected TimestampableRepository $entityRepository;
 
     /**
      * @return void
      */
-    public function setUp() {
+    public function setUp(): void
+    {
         parent::setUp();
         if (!$this->persistenceManager instanceof PersistenceManager) {
             $this->markTestSkipped('Doctrine persistence is not enabled');

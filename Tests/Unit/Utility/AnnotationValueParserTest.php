@@ -8,6 +8,7 @@ namespace CDSRC\Libraries\Tests\Unit\Utility;
 use CDSRC\Libraries\Exceptions\InvalidValueException;
 use CDSRC\Libraries\Utility\AnnotationValueParser as Parser;
 use Neos\Flow\Tests\UnitTestCase;
+use ReflectionException;
 
 /**
  * Test case for the traceable annotation
@@ -181,16 +182,16 @@ class AnnotationValueParserTest extends UnitTestCase
      *
      * @param string $value
      * @param array $result
-     * @param string $throwException
-     * @param integer $throwExceptionCode
+     * @param string|null $throwException
+     * @param int|null $throwExceptionCode
      *
+     * @throws InvalidValueException
+     * @throws ReflectionException
      * @test
      * @dataProvider getValuesResults
      *
-     * @throws InvalidValueException
-     * @throws \ReflectionException
      */
-    public function checkValueParsing($value, $result, $throwException = NULL, $throwExceptionCode = NULL)
+    public function checkValueParsing(string $value, array $result, ?string $throwException = NULL, ?int $throwExceptionCode = NULL)
     {
         $this->setExpectedException($throwException, '', $throwExceptionCode);
         $this->assertEquals($result, Parser::parseValue($value));

@@ -17,20 +17,20 @@ use Neos\Flow\Annotations as Flow;
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
 class Entity extends AbstractTranslatable{
-    
+
     /**
      *
-     * @var string 
+     * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected $type;
+    protected ?string $type;
 
     /**
      * Entity constructor.
      *
      * @param string $type
      */
-    public function __construct($type = '') {
+    public function __construct(string $type = '') {
         parent::__construct();
         $this->type = $type;
     }

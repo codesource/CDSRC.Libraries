@@ -13,7 +13,7 @@ namespace CDSRC\Libraries\Tests\Unit\Utility\Fixture;
 class DummyClass
 {
 
-    protected $var;
+    protected mixed $var;
 
     public function __construct($var = '')
     {
@@ -25,27 +25,27 @@ class DummyClass
         return $this->var;
     }
 
-    public function test1()
+    public function test1(): string
     {
         return 'test1';
     }
 
-    public function test2($a, $b)
+    public function test2($a, $b): string
     {
         return $a . ' ' . $b;
     }
 
-    public static function test3()
+    public static function test3(): string
     {
         return 'test3';
     }
 
-    public static function test4($a, $b)
+    public static function test4($a, $b): string
     {
         return $a . ' ' . $b;
     }
 
-    protected function protectedFunction()
+    protected function protectedFunction(): string
     {
         return '';
     }

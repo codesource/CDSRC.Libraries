@@ -10,10 +10,12 @@ use CDSRC\Libraries\Traceable\Annotations\Traceable;
 use CDSRC\Libraries\Traceable\Exceptions\VarAnnotationNotFoundException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\OnFlushEventArgs;
-use Doctrine\ORM\ORMException;
+use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\UnitOfWork;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Reflection\ReflectionService;
 use ReflectionException;
+use ReflectionProperty;
 
 
 /**
@@ -29,13 +31,13 @@ class EventListener
      *
      * @var array
      */
-    protected static $storedProperties = array();
+    protected static array $storedProperties = array();
 
     /**
-     * @var \Neos\Flow\Reflection\ReflectionService
+     * @var ReflectionService
      * @Flow\Inject
      */
-    protected $reflectionService;
+    protected ReflectionService $reflectionService;
 
     /**
      * Intercept flush event
@@ -43,14 +45,13 @@ class EventListener
      * @param OnFlushEventArgs $eventArgs
      *
      * @throws InvalidValueException
-     * @throws VarAnnotationNotFoundException
-     * @throws ReflectionException
      * @throws ORMException
+     * @throws ReflectionException
+     * @throws VarAnnotationNotFoundException
      */
-    public function onFlush(OnFlushEventArgs $eventArgs)
+    public function onFlush(OnFlushEventArgs $eventArgs): void
     {
-
-        $entityManager = $eventArgs->getEntityManager();
+        $entityManager = $eventArgs->getObjectManager();
         $unitOfWork = $entityManager->getUnitOfWork();
 
         foreach ($unitOfWork->getScheduledEntityInsertions() as $entity) {
@@ -70,16 +71,16 @@ class EventListener
      * @param UnitOfWork $unitOfWork
      *
      * @throws InvalidValueException
+     * @throws ReflectionException
      * @throws VarAnnotationNotFoundException
      * @throws ORMException
-     * @throws ReflectionException
      */
-    protected function onFlushForInsertions(&$entity, EntityManager &$entityManager, UnitOfWork &$unitOfWork)
+    protected function onFlushForInsertions(object $entity, EntityManager $entityManager, UnitOfWork $unitOfWork): void
     {
         $className = get_class($entity);
         $this->initializeAnnotationsForEntity($className);
         if (count(self::$storedProperties[$className]['annotations']) > 0) {
-            foreach (self::$storedProperties[$className]['annotations'] as $propertyName => &$annotations) {
+            foreach (self::$storedProperties[$className]['annotations'] as $propertyName => $annotations) {
                 foreach ($annotations as $annotation) {
                     if ($annotation->on === 'create') {
                         list($oldValue, $value) = $this->updateEntityPropertyValue($entity, $className, $propertyName, $annotation);
@@ -100,7 +101,7 @@ class EventListener
      *
      * @param string $className
      */
-    protected function initializeAnnotationsForEntity($className)
+    protected function initializeAnnotationsForEntity(string $className): void
     {
         if (!isset(self::$storedProperties[$className]['annotations'])) {
             self::$storedProperties[$className]['annotations'] = array();
@@ -120,7 +121,7 @@ class EventListener
      * @param object $entity
      * @param string $className
      * @param string $propertyName
-     * @param \CDSRC\Libraries\Traceable\Annotations\Traceable $annotation
+     * @param Traceable $annotation
      *
      * @return array
      *
@@ -128,10 +129,9 @@ class EventListener
      * @throws ReflectionException
      * @throws InvalidValueException
      */
-    protected function updateEntityPropertyValue(&$entity, $className, $propertyName, Traceable $annotation)
+    protected function updateEntityPropertyValue(object $entity, string $className, string $propertyName, Traceable $annotation) : array
     {
-        $property = new \ReflectionProperty($className, $propertyName);
-        $property->setAccessible(true);
+        $property = new ReflectionProperty($className, $propertyName);
         $type = $this->getPropertyType($className, $propertyName, $property);
         $oldValue = $property->getValue($entity);
         $value = $annotation->getValue($type, $entity);
@@ -145,17 +145,17 @@ class EventListener
      *
      * @param string $className
      * @param string $propertyName
-     * @param \ReflectionProperty $property
+     * @param ReflectionProperty|null $property
      *
      * @return string
      *
-     * @throws VarAnnotationNotFoundException
      * @throws ReflectionException
+     * @throws VarAnnotationNotFoundException
      */
-    protected function getPropertyType($className, $propertyName, \ReflectionProperty $property = null)
+    protected function getPropertyType(string $className, string $propertyName, ?ReflectionProperty $property = null) : string
     {
         if (!isset(self::$storedProperties[$className]['types'][$propertyName])) {
-            $property = $property === null ? new \ReflectionProperty($className, $propertyName) : $property;
+            $property = $property === null ? new ReflectionProperty($className, $propertyName) : $property;
             $matches = array();
             if (!preg_match('/@var(.*)/m', $property->getDocComment(), $matches) || strlen($type = trim($matches[1])) === 0) {
                 throw new VarAnnotationNotFoundException('@var annotation not found for "' . $propertyName . '"', 1439252004);
@@ -170,20 +170,20 @@ class EventListener
      * Flush for update
      *
      * @param object $entity
-     * @param \Doctrine\ORM\EntityManager $entityManager
-     * @param \Doctrine\ORM\UnitOfWork $unitOfWork
+     * @param EntityManager $entityManager
+     * @param UnitOfWork $unitOfWork
      *
      * @throws VarAnnotationNotFoundException
      * @throws InvalidValueException
      * @throws ReflectionException
      * @throws ORMException
      */
-    protected function onFlushForUpdates(&$entity, EntityManager &$entityManager, UnitOfWork &$unitOfWork)
+    protected function onFlushForUpdates(object $entity, EntityManager $entityManager, UnitOfWork $unitOfWork)
     {
         $className = get_class($entity);
         $this->initializeAnnotationsForEntity($className);
         if (count(self::$storedProperties[$className]['annotations']) > 0) {
-            foreach (self::$storedProperties[$className]['annotations'] as $propertyName => &$annotations) {
+            foreach (self::$storedProperties[$className]['annotations'] as $propertyName => $annotations) {
                 /* @var $annotation Traceable */
                 foreach ($annotations as $annotation) {
                     $run = $annotation->on === 'update';

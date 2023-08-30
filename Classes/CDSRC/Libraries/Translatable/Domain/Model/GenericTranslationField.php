@@ -5,8 +5,10 @@
 
 namespace CDSRC\Libraries\Translatable\Domain\Model;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\Property\Exception\InvalidDataTypeException;
 use Neos\Flow\Property\Exception\InvalidPropertyException;
 
@@ -20,11 +22,11 @@ class GenericTranslationField
 {
 
     /**
-     * @var \Neos\Flow\Persistence\PersistenceManagerInterface
+     * @var PersistenceManagerInterface
      * @Flow\Inject
      * @Flow\Transient
      */
-    protected $persistenceManager;
+    protected PersistenceManagerInterface $persistenceManager;
 
     /**
      * Parent translation
@@ -32,79 +34,79 @@ class GenericTranslationField
      * @var GenericTranslation
      * @ORM\ManyToOne(inversedBy="fields")
      */
-    protected $translation;
+    protected GenericTranslation $translation;
 
     /**
      * Property's name
      *
      * @var string
      */
-    protected $property;
+    protected string $property;
 
     /**
      * Generic boolean
      *
-     * @var boolean
+     * @var bool|null
      * @ORM\Column(nullable=true)
      */
-    protected $vBoolean;
+    protected ?bool $vBoolean;
 
     /**
      * Generic integer
      *
-     * @var integer
+     * @var int|null
      * @ORM\Column(nullable=true)
      */
-    protected $vInteger;
+    protected ?int $vInteger;
 
     /**
      * Generic float
      * Mapped as double
      *
-     * @var float
+     * @var float|null
      * @ORM\Column(nullable=true)
      */
-    protected $vFloat;
+    protected ?float $vFloat;
 
     /**
      * Generic string
      *
-     * @var string
+     * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected $vString;
+    protected ?string $vString;
 
     /**
      * Generic string
      *
-     * @var string
+     * @var string|null
      * @ORM\Column(type="text", nullable=true)
      */
-    protected $vText;
+    protected ?string $vText;
 
     /**
      * Generic datetime
      *
-     * @var \DateTime
+     * @var DateTime|null
      * @ORM\Column(nullable=true)
      */
-    protected $vDatetime;
+    protected ?DateTime $vDatetime;
 
     /**
      * Generic array
      *
-     * @var string
+     * @var string|null
      * @ORM\Column(type="text", nullable=true)
      */
-    protected $vArray;
+    protected ?string $vArray;
 
     /**
      * Generic array
      *
-     * @var array
+     * @var array|null
      * @Flow\Transient
      */
-    protected $vArrayUnserialized;
+    protected ?array $vArrayUnserialized;
 
 
     /**
@@ -134,18 +136,18 @@ class GenericTranslationField
     /**
      * Constructor
      *
-     * @param \CDSRC\Libraries\Translatable\Domain\Model\GenericTranslation $translation
-     * @param string $property
+     * @param GenericTranslation $translation
+     * @param string|null $property
      *
-     * @throws \Neos\Flow\Property\Exception\InvalidPropertyException
+     * @throws InvalidPropertyException
      */
-    public function __construct(GenericTranslation $translation, $property)
+    public function __construct(GenericTranslation $translation, ?string $property)
     {
         if (!is_string($property) || !preg_match('/^[a-z][a-z0-9_]+$/i', $property)) {
             throw new InvalidPropertyException('"' . $property . '" is not a valid property\'s name', 1428263235);
         }
         $this->translation = $translation;
-        $this->property = (string)$property;
+        $this->property = $property;
     }
 
     /**
@@ -192,10 +194,11 @@ class GenericTranslationField
      *
      * @param mixed $value
      *
-     * @return \CDSRC\Libraries\Translatable\Domain\Model\GenericTranslationField
+     * @return GenericTranslationField
+     *
      * @throws InvalidDataTypeException
      */
-    public function setValue($value)
+    public function setValue(mixed $value): GenericTranslationField
     {
         $OK = false;
         if (is_bool($value)) {
@@ -219,13 +222,13 @@ class GenericTranslationField
             $serialized = $this->serializeArray($value);
             if ($serialized === false) {
                 $this->vArrayUnserialized = null;
-                $OK = false;
+                // $OK = false; // Not needed because default value
             } else {
                 $this->vArray = $serialized;
                 $OK = true;
             }
         } elseif (is_object($value)) {
-            if ($value instanceof \DateTime) {
+            if ($value instanceof DateTime) {
                 $this->vDatetime = $value;
                 $OK = true;
             } elseif ($value instanceof TranslatableInterface) {
@@ -249,9 +252,9 @@ class GenericTranslationField
      * @param array $array
      * @param int $depth
      *
-     * @return FALSE|string if error appends
+     * @return string|bool
      */
-    protected function serializeArray(array &$array, $depth = 0)
+    protected function serializeArray(array &$array, int $depth = 0): bool|string
     {
         if ($depth < 50) {
             foreach ($array as &$val) {
@@ -265,7 +268,7 @@ class GenericTranslationField
                         $val = 'ARR->|' . $serialized;
                     }
                 } elseif (is_object($val)) {
-                    if ($val instanceof \DateTime) {
+                    if ($val instanceof DateTime) {
                         $val = 'DAT->|' . serialize($val);
                     } else {
                         $className = get_class($val);
@@ -292,9 +295,9 @@ class GenericTranslationField
     /**
      * Reset all values
      *
-     * @return \CDSRC\Libraries\Translatable\Domain\Model\GenericTranslationField
+     * @return GenericTranslationField
      */
-    protected function resetValues()
+    protected function resetValues(): GenericTranslationField
     {
         foreach ($this->types as $type) {
             $this->$type = null;
@@ -308,9 +311,9 @@ class GenericTranslationField
      *
      * @param string $string
      *
-     * @return array|FALSE if error appends
+     * @return array|bool
      */
-    protected function unserializeArray($string)
+    protected function unserializeArray(string $string): bool|array
     {
         $array = unserialize($string);
         if (is_array($array)) {

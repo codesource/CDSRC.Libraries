@@ -13,7 +13,15 @@ use Neos\Flow\I18n\Locale;
 use Neos\Flow\Mvc\Controller\Argument;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
 use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
+use Neos\Flow\Property\Exception as FlowPropertyException;
+use Neos\Flow\Property\PropertyMapper;
+use Neos\Flow\Property\TypeConverter\PersistentObjectConverter;
+use Neos\Flow\Security\Exception as FlowSecurityException;
 use Neos\Flow\Tests\FunctionalTestCase;
+use Neos\Flow\Validation\Exception\InvalidValidationConfigurationException;
+use Neos\Flow\Validation\Exception\InvalidValidationOptionsException;
+use Neos\Flow\Validation\Exception\NoSuchValidatorException;
+use Neos\Flow\Validation\ValidatorResolver;
 
 /**
  * Test case for translation
@@ -29,32 +37,32 @@ class TranslateMappingTest extends FunctionalTestCase
     static protected $testablePersistenceEnabled = true;
 
     /**
-     * @var \Neos\Flow\Validation\ValidatorResolver
+     * @var ValidatorResolver
      */
-    protected $validatorResolver;
+    protected ValidatorResolver $validatorResolver;
 
     /**
      *
-     * @var \Neos\Flow\Property\PropertyMapper
+     * @var PropertyMapper
      */
-    protected $propertyMapper;
+    protected PropertyMapper $propertyMapper;
 
     /** @var Locale */
-    protected $localeDe;
+    protected Locale $localeDe;
 
     /** @var Locale */
-    protected $localeFr;
+    protected Locale $localeFr;
 
     /** @var Locale */
-    protected $localeEn;
+    protected Locale $localeEn;
 
     /** @var Locale */
-    protected $localeIt;
+    protected Locale $localeIt;
 
     /**
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         if (!$this->persistenceManager instanceof PersistenceManager) {
@@ -63,19 +71,22 @@ class TranslateMappingTest extends FunctionalTestCase
         $this->propertyMapper = $this->objectManager->get('Neos\Flow\Property\PropertyMapper');
         $this->validatorResolver = $this->objectManager->get('Neos\Flow\Validation\ValidatorResolver');
 
-        try {
-            $this->localeDe = new Locale('de-CH');
-            $this->localeFr = new Locale('fr-CH');
-            $this->localeEn = new Locale('en-US');
-            $this->localeIt = new Locale('it-IT');
-        } catch (InvalidLocaleIdentifierException $e) {
-        }
+        $this->localeDe = new Locale('de-CH');
+        $this->localeFr = new Locale('fr-CH');
+        $this->localeEn = new Locale('en-US');
+        $this->localeIt = new Locale('it-IT');
     }
 
     /**
      * @test
+     *
+     * @return void
+     *
+     * @throws FlowPropertyException
+     * @throws FlowSecurityException
      */
-    public function testMappingMagic(){
+    public function testMappingMagic()
+    {
         $deTitle = 'Title DE';
         $frTitle = 'Title FR';
         $enTitle = 'Title EN';
@@ -113,17 +124,17 @@ class TranslateMappingTest extends FunctionalTestCase
 
         $propertyMappingConfiguration = $argument->getPropertyMappingConfiguration();
         $propertyMappingConfiguration->allowProperties('icon', 'color');
-        $propertyMappingConfiguration->setTypeConverterOption('Neos\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \Neos\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
+        $propertyMappingConfiguration->setTypeConverterOption('Neos\\Flow\\Property\\TypeConverter\\PersistentObjectConverter', PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
 
         $argument->setValue($category);
 
         /** @var Category $categoryObject */
         $categoryObject = $argument->getValue();
 
-        foreach($data as $localeAndTitle){
+        foreach ($data as $localeAndTitle) {
             $translation = $categoryObject->getTranslationByLocale($localeAndTitle[0], false);
             $this->assertNotNull($translation);
-            if($translation){
+            if ($translation) {
                 $this->assertEquals($localeAndTitle[1], $translation->getTitle());
             }
         }
@@ -132,9 +143,12 @@ class TranslateMappingTest extends FunctionalTestCase
     /**
      * @test
      *
+     * @throws FlowPropertyException
+     * @throws FlowSecurityException
      * @throws IllegalObjectTypeException
      */
-    public function testMappingExistingTranslation(){
+    public function testMappingExistingTranslation()
+    {
         $category = new Category();
         $category->setColor('#cccccc');
         $category->setIcon('none');
@@ -163,7 +177,7 @@ class TranslateMappingTest extends FunctionalTestCase
 
         $propertyMappingConfiguration = $argument->getPropertyMappingConfiguration();
         $propertyMappingConfiguration->allowProperties('icon', 'color');
-        $propertyMappingConfiguration->setTypeConverterOption('Neos\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \Neos\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);
+        $propertyMappingConfiguration->setTypeConverterOption('Neos\\Flow\\Property\\TypeConverter\\PersistentObjectConverter', PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);
 
         $argument->setValue($data);
 
@@ -179,14 +193,21 @@ class TranslateMappingTest extends FunctionalTestCase
 
     /**
      * @test
+     *
+     * @throws FlowPropertyException
+     * @throws FlowSecurityException
+     * @throws InvalidValidationConfigurationException
+     * @throws InvalidValidationOptionsException
+     * @throws NoSuchValidatorException
      */
-    public function testValidationResultRewriting(){
+    public function testValidationResultRewriting()
+    {
         $argument = new Argument('category', Category::class);
         $argument->setRequired(true);
 
         $propertyMappingConfiguration = $argument->getPropertyMappingConfiguration();
         $propertyMappingConfiguration->allowProperties('icon', 'color');
-        $propertyMappingConfiguration->setTypeConverterOption('Neos\\Flow\\Property\\TypeConverter\\PersistentObjectConverter',  \Neos\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
+        $propertyMappingConfiguration->setTypeConverterOption('Neos\\Flow\\Property\\TypeConverter\\PersistentObjectConverter', PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
 
         $argument->setValidator($this->validatorResolver->getBaseValidatorConjunction($argument->getDataType()));
 
@@ -206,13 +227,13 @@ class TranslateMappingTest extends FunctionalTestCase
 
         $this->assertTrue($validationResults->hasMessages());
 
-        $this->assertTrue($validationResults->forProperty('title.'.(string)$this->localeDe)->hasErrors());
-        $this->assertFalse($validationResults->forProperty('title.'.(string)$this->localeFr)->hasErrors());
-        $this->assertFalse($validationResults->forProperty('title.'.(string)$this->localeEn)->hasErrors());
-        $this->assertTrue($validationResults->forProperty('title.'.(string)$this->localeIt)->hasErrors());
+        $this->assertTrue($validationResults->forProperty('title.' . $this->localeDe)->hasErrors());
+        $this->assertFalse($validationResults->forProperty('title.' . $this->localeFr)->hasErrors());
+        $this->assertFalse($validationResults->forProperty('title.' . $this->localeEn)->hasErrors());
+        $this->assertTrue($validationResults->forProperty('title.' . $this->localeIt)->hasErrors());
 
-        $this->assertEquals('This text may not exceed %1$d characters.', $validationResults->forProperty('title.'.(string)$this->localeDe)->getFirstError()->getMessage());
-        $this->assertEquals('This property is required.', $validationResults->forProperty('title.'.(string)$this->localeIt)->getFirstError()->getMessage());
+        $this->assertEquals('This text may not exceed %1$d characters.', $validationResults->forProperty('title.' . $this->localeDe)->getFirstError()->getMessage());
+        $this->assertEquals('This property is required.', $validationResults->forProperty('title.' . $this->localeIt)->getFirstError()->getMessage());
 
         $argument->setValue(array(
             'icon' => '',
@@ -228,14 +249,14 @@ class TranslateMappingTest extends FunctionalTestCase
         /** @var Result $validationResults */
         $validationResults = $argument->getValidationResults();
 
-        $this->assertTrue($validationResults->forProperty('title.'.(string)$this->localeDe)->hasErrors());
-        $this->assertFalse($validationResults->forProperty('title.'.(string)$this->localeFr)->hasErrors());
-        $this->assertFalse($validationResults->forProperty('title.'.(string)$this->localeEn)->hasErrors());
-        $this->assertTrue($validationResults->forProperty('title.'.(string)$this->localeIt)->hasErrors());
+        $this->assertTrue($validationResults->forProperty('title.' . $this->localeDe)->hasErrors());
+        $this->assertFalse($validationResults->forProperty('title.' . $this->localeFr)->hasErrors());
+        $this->assertFalse($validationResults->forProperty('title.' . $this->localeEn)->hasErrors());
+        $this->assertTrue($validationResults->forProperty('title.' . $this->localeIt)->hasErrors());
         $this->assertTrue($validationResults->forProperty('color')->hasErrors());
 
-        $this->assertEquals('This text may not exceed %1$d characters.', $validationResults->forProperty('title.'.(string)$this->localeDe)->getFirstError()->getMessage());
-        $this->assertEquals('This property is required.', $validationResults->forProperty('title.'.(string)$this->localeIt)->getFirstError()->getMessage());
+        $this->assertEquals('This text may not exceed %1$d characters.', $validationResults->forProperty('title.' . $this->localeDe)->getFirstError()->getMessage());
+        $this->assertEquals('This property is required.', $validationResults->forProperty('title.' . $this->localeIt)->getFirstError()->getMessage());
         $this->assertEquals('This property is required.', $validationResults->forProperty('color')->getFirstError()->getMessage());
 
     }

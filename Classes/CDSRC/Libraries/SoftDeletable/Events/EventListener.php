@@ -7,8 +7,12 @@ namespace CDSRC\Libraries\SoftDeletable\Events;
 
 use CDSRC\Libraries\SoftDeletable\Annotations\SoftDeletable;
 use CDSRC\Libraries\SoftDeletable\Exceptions\PropertyNotFoundException;
+use DateTime;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Reflection\ReflectionService;
+use ReflectionClass;
+use ReflectionException;
 
 /**
  * Database event listener
@@ -19,23 +23,22 @@ class EventListener
 {
 
     /**
-     * @var \Neos\Flow\Reflection\ReflectionService
+     * @var ReflectionService
      * @Flow\Inject
      */
-    protected $reflectionService;
+    protected ReflectionService $reflectionService;
 
     /**
      * Intercept flush event
      *
-     * @param \Doctrine\ORM\Event\OnFlushEventArgs $eventArgs
+     * @param OnFlushEventArgs $eventArgs
      *
      * @throws PropertyNotFoundException
-     * @throws \ReflectionException
-     * @throws \Doctrine\ORM\ORMException
+     * @throws ReflectionException
      */
-    public function onFlush(OnFlushEventArgs $eventArgs)
+    public function onFlush(OnFlushEventArgs $eventArgs): void
     {
-        $entityManager = $eventArgs->getEntityManager();
+        $entityManager = $eventArgs->getObjectManager();
         $unitOfWork = $entityManager->getUnitOfWork();
         $properties = array();
 
@@ -48,7 +51,7 @@ class EventListener
                     if (!in_array($annotation->deleteProperty, $existingProperties)) {
                         throw new PropertyNotFoundException("Property '" . $annotation->deleteProperty . "' not found for '" . $className . "'", 1439207432);
                     }
-                    $reflectionClass = new \ReflectionClass($className);
+                    $reflectionClass = new ReflectionClass($className);
                     $properties[$className] = array();
                     if (strlen($annotation->hardDeleteProperty) > 0) {
                         if (!in_array($annotation->hardDeleteProperty, $existingProperties)) {
@@ -66,7 +69,7 @@ class EventListener
 
                 $oldValue = $properties[$className]['p']->getValue($entity);
 
-                $date = new \DateTime();
+                $date = new DateTime();
                 $properties[$className]['p']->setValue($entity, $date);
                 $entityManager->persist($entity);
                 $unitOfWork->propertyChanged($entity, $annotation->deleteProperty, $oldValue, $date);

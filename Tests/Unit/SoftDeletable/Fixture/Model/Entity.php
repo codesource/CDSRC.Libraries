@@ -18,14 +18,14 @@ use Neos\Flow\Annotations as Flow;
  */
 class Entity {
     use SoftDeletable;
-    
+
     /**
      *
-     * @var string 
+     * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected $type;
-    
+    protected ?string $type;
+
     public function __construct($type = '') {
         $this->type = $type;
     }

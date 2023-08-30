@@ -7,6 +7,7 @@ namespace CDSRC\Libraries\Translatable\Aspect;
 
 use CDSRC\Libraries\Exceptions\InvalidMethodException;
 use CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface;
+use InvalidArgumentException;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
 use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
@@ -34,7 +35,7 @@ class ObjectAccessorNodeAspect
      * @throws InvalidLocaleIdentifierException
      * @throws InvalidMethodException
      */
-    public function getPropertyPathForTranslatableObject(JoinPointInterface $joinPoint)
+    public function getPropertyPathForTranslatableObject(JoinPointInterface $joinPoint): mixed
     {
         $result = $joinPoint->getAdviceChain()->proceed($joinPoint);
         if ($result !== null) {
@@ -49,7 +50,7 @@ class ObjectAccessorNodeAspect
         ));
         $countPropertyPathSegments = count($propertyPathSegments);
         if ($countPropertyPathSegments < 2) {
-            return $result;
+            return null;
         }
 
         $renderingContext = $joinPoint->getMethodArgument('renderingContext');
@@ -58,9 +59,7 @@ class ObjectAccessorNodeAspect
             try {
                 $pathSegment = $propertyPathSegments[$i];
                 $subject = ObjectAccess::getProperty($subject, $pathSegment);
-            } catch (\InvalidArgumentException $exception) {
-                $subject = null;
-            } catch (PropertyNotAccessibleException $exception) {
+            } catch (InvalidArgumentException|PropertyNotAccessibleException $exception) {
                 $subject = null;
             }
 
@@ -102,7 +101,7 @@ class ObjectAccessorNodeAspect
      *
      * @return bool
      */
-    protected function isValidPathSegment($segment)
+    protected function isValidPathSegment(mixed $segment): bool
     {
         return !is_string($segment) || strlen($segment) > 0;
     }

@@ -6,6 +6,7 @@
 namespace CDSRC\Libraries\Traceable\Domain\Model;
 
 use CDSRC\Libraries\Traceable\Annotations as CDSRC;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -19,27 +20,27 @@ trait TimestampableTrait
     /**
      * Datetime of creation
      *
-     * @var \DateTime
+     * @var DateTime|null
      * @CDSRC\Traceable(on="create", value="now")
      * @ORM\Column(nullable=true)
      */
-    protected $createdAt = null;
+    protected ?DateTime $createdAt = null;
 
     /**
      * Datetime of last update
      *
-     * @var \DateTime
+     * @var DateTime|null
      * @CDSRC\Traceable(on="update", value="now")
      * @ORM\Column(nullable=true)
      */
-    protected $updatedAt = null;
+    protected ?DateTime $updatedAt = null;
 
     /**
      * Get datetime of creation
      *
-     * @return \DateTime|NULL
+     * @return DateTime|null
      */
-    public function getCreatedAt()
+    public function getCreatedAt(): ?DateTime
     {
         return $this->createdAt;
     }
@@ -47,9 +48,9 @@ trait TimestampableTrait
     /**
      * Get datetime of last update
      *
-     * @return \DateTime|NULL
+     * @return DateTime|null
      */
-    public function getUpdatedAt()
+    public function getUpdatedAt(): ?DateTime
     {
         return $this->updatedAt;
     }

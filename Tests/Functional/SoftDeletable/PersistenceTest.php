@@ -9,6 +9,7 @@ use CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Model\Entity;
 use CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Model\Entity2;
 use CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Repository\Entity2Repository;
 use CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Repository\EntityRepository;
+use DateTime;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
 use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Neos\Flow\Tests\FunctionalTestCase;
@@ -30,19 +31,19 @@ class PersistenceTest extends FunctionalTestCase
     static protected $testablePersistenceEnabled = true;
 
     /**
-     * @var \CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Repository\EntityRepository
+     * @var EntityRepository
      */
-    protected $entityRepository;
+    protected EntityRepository $entityRepository;
 
     /**
-     * @var \CDSRC\Libraries\Tests\Functional\SoftDeletable\Fixture\Repository\Entity2Repository
+     * @var Entity2Repository
      */
-    protected $entity2Repository;
+    protected Entity2Repository $entity2Repository;
 
     /**
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         if (!$this->persistenceManager instanceof PersistenceManager) {
@@ -105,8 +106,8 @@ class PersistenceTest extends FunctionalTestCase
 
         $this->assertEquals(2, $this->entityRepository->countAll() + $this->entity2Repository->countAll());
 
-        $entity->setDeletedAt(new \DateTime("now + 3 days"));
-        $entity2->setDeletedAt(new \DateTime("now + 3 days"));
+        $entity->setDeletedAt(new DateTime("now + 3 days"));
+        $entity2->setDeletedAt(new DateTime("now + 3 days"));
         $this->entityRepository->update($entity);
         $this->entity2Repository->update($entity2);
         $this->persistenceManager->persistAll();

@@ -5,6 +5,7 @@
 
 namespace CDSRC\Libraries\Tests\Functional\SoftDeletable;
 
+use Neos\Flow\Reflection\ReflectionService;
 use Neos\Flow\Tests\FunctionalTestCase;
 
 /**
@@ -16,14 +17,14 @@ class ReflectionTest extends FunctionalTestCase
 {
 
     /**
-     * @var \Neos\Flow\Reflection\ReflectionService
+     * @var ReflectionService
      */
-    protected $reflectionService;
+    protected ReflectionService $reflectionService;
 
     /**
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->reflectionService = $this->objectManager->get('Neos\Flow\Reflection\ReflectionService');

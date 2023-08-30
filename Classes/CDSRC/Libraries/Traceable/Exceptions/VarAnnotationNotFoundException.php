@@ -5,11 +5,13 @@
 
 namespace CDSRC\Libraries\Traceable\Exceptions;
 
+use Exception;
+
 /**
  * Triggered when "var" annotation has not been found
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-class VarAnnotationNotFoundException extends \Exception
+class VarAnnotationNotFoundException extends Exception
 {
 }

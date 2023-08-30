@@ -22,18 +22,25 @@ class IpTraceable
 
     /**
      *
-     * @var string
+     * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected $type;
+    protected ?string $type;
 
     public function __construct($type = '')
     {
         $this->type = $type;
     }
 
-    public function setType($type)
+    /**
+     * @param string $type
+     *
+     * @return IpTraceable
+     */
+    public function setType(string $type): IpTraceable
     {
         $this->type = $type;
+
+        return $this;
     }
 }

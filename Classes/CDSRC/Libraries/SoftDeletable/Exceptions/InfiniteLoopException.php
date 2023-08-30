@@ -5,11 +5,13 @@
 
 namespace CDSRC\Libraries\SoftDeletable\Exceptions;
 
+use Exception;
+
 /**
  * Infinite loop exception
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-class InfiniteLoopException extends \Exception
+class InfiniteLoopException extends Exception
 {
 }

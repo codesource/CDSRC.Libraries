@@ -6,7 +6,9 @@
 namespace CDSRC\Libraries\Exceptions;
 
 
-class InvalidMethodException extends \Exception
+use Exception;
+
+class InvalidMethodException extends Exception
 {
 
 }

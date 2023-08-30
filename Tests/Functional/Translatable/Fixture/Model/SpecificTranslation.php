@@ -7,6 +7,7 @@ namespace CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model;
 
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation;
 use CDSRC\Libraries\Translatable\Domain\Model\TranslationInterface;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
 
@@ -18,47 +19,47 @@ use Neos\Flow\Annotations as Flow;
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
 class SpecificTranslation extends AbstractTranslation implements TranslationInterface {
-    
+
     /**
-     * @var string
+     * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected $stringField;
-    
+    protected ?string $stringField;
+
     /**
-     * @var boolean
+     * @var bool|null
      * @ORM\Column(nullable=true)
      */
-    protected $booleanField;
-    
+    protected ?bool $booleanField;
+
     /**
-     * @var integer
+     * @var int|null
      * @ORM\Column(nullable=true)
      */
-    protected $integerField;
-    
+    protected ?int $integerField;
+
     /**
-     * @var float
+     * @var float|null
      * @ORM\Column(nullable=true)
      */
-    protected $floatField;
-    
+    protected ?float $floatField;
+
     /**
-     * @var \DateTime
+     * @var DateTime|null
      * @ORM\Column(nullable=true)
      */
-    protected $dateField;
-    
+    protected ?DateTime $dateField;
+
     /**
-     * @var array
+     * @var array|null
      * @ORM\Column(nullable=true)
      */
-    protected $arrayField;
-    
+    protected ?array $arrayField;
+
     /**
-     * @var \CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Entity
+     * @var Entity
      * @ORM\ManyToOne
      * @ORM\Column(nullable=true)
      */
-    protected $objectField;
+    protected Entity $objectField;
 }

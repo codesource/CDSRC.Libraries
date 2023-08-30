@@ -22,18 +22,28 @@ class UserTraceable
 
     /**
      *
-     * @var string
+     * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected $type;
+    protected ?string $type;
 
-    public function __construct($type = '')
+    /**
+     * @param string $type
+     */
+    public function __construct(string $type = '')
     {
         $this->type = $type;
     }
 
-    public function setType($type)
+    /**
+     * @param string $type
+     *
+     * @return UserTraceable
+     */
+    public function setType(string $type): UserTraceable
     {
         $this->type = $type;
+
+        return $this;
     }
 }

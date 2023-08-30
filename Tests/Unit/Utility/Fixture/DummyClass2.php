@@ -14,7 +14,7 @@ namespace CDSRC\Libraries\Tests\Unit\Utility\Fixture;
 class DummyClass2
 {
 
-    protected $var;
+    protected mixed $var;
 
     public function __construct($var)
     {

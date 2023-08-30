@@ -6,6 +6,10 @@
 namespace CDSRC\Libraries\Tests\Functional\Translatable;
 
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Entity;
+use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\EntityRepository;
+use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\GenericRepository;
+use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\SpecificRepository;
+use DateTime;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
 use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Neos\Flow\Tests\FunctionalTestCase;
@@ -19,7 +23,8 @@ use Neos\Flow\Tests\FunctionalTestCase;
  * @method markTestSkipped($message)
  * @method markTestIncomplete($message)
  */
-class PersistenceTest extends FunctionalTestCase {
+class PersistenceTest extends FunctionalTestCase
+{
 
     /**
      * @var boolean
@@ -27,32 +32,33 @@ class PersistenceTest extends FunctionalTestCase {
     static protected $testablePersistenceEnabled = TRUE;
 
     /**
-     * @var \CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\GenericRepository
+     * @var GenericRepository
      */
-    protected $genericRepository;
+    protected GenericRepository $genericRepository;
 
     /**
-     * @var \CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\SpecificRepository
+     * @var SpecificRepository
      */
-    protected $specificRepository;
+    protected SpecificRepository $specificRepository;
 
     /**
-     * @var \CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\EntityRepository
+     * @var EntityRepository
      */
-    protected $entityRepository;
+    protected EntityRepository $entityRepository;
 
     /**
      * Generated data for testing
      * @var array
      */
-    protected $data;
+    protected array $data;
 
     /**
      * @return void
      *
      * @throws IllegalObjectTypeException
      */
-    public function setUp() {
+    public function setUp(): void
+    {
         parent::setUp();
         if (!$this->persistenceManager instanceof PersistenceManager) {
             $this->markTestSkipped('Doctrine persistence is not enabled');
@@ -69,7 +75,8 @@ class PersistenceTest extends FunctionalTestCase {
      *
      * @throws IllegalObjectTypeException
      */
-    public function genericEntitiesArePersistedAndReconstituted() {
+    public function genericEntitiesArePersistedAndReconstituted()
+    {
         $this->markTestIncomplete(
             'This test has not been implemented yet with new feature.'
         );
@@ -95,7 +102,8 @@ class PersistenceTest extends FunctionalTestCase {
      *
      * @throws IllegalObjectTypeException
      */
-    public function specificEntitiesArePersistedAndReconstituted() {
+    public function specificEntitiesArePersistedAndReconstituted()
+    {
         $this->markTestIncomplete(
             'This test has not been implemented yet with new feature.'
         );
@@ -121,7 +129,8 @@ class PersistenceTest extends FunctionalTestCase {
      *
      * @throws IllegalObjectTypeException
      */
-    public function genericAndSpecificAreSame() {
+    public function genericAndSpecificAreSame()
+    {
         $this->markTestIncomplete(
             'This test has not been implemented yet with new feature.'
         );
@@ -157,7 +166,8 @@ class PersistenceTest extends FunctionalTestCase {
      *
      * @throws IllegalObjectTypeException
      */
-    public function generateData() {
+    public function generateData()
+    {
         $entityDefault = new Entity('default');
         $entityEnUs = new Entity('en-US');
         $entityFrFr = new Entity('fr-FR');
@@ -172,9 +182,9 @@ class PersistenceTest extends FunctionalTestCase {
                 'fr-FR' => 'value for fr-FR'
             ),
             'boolean' => array(
-                'default' => rand(0, 1) ? TRUE : FALSE,
-                'en-US' => rand(0, 1) ? TRUE : FALSE,
-                'fr-FR' => rand(0, 1) ? TRUE : FALSE
+                'default' => (bool)rand(0, 1),
+                'en-US' => (bool)rand(0, 1),
+                'fr-FR' => (bool)rand(0, 1)
             ),
             'integer' => array(
                 'default' => rand(1000, 10000),
@@ -187,9 +197,9 @@ class PersistenceTest extends FunctionalTestCase {
                 'fr-FR' => rand(1000, 10000) / 100
             ),
             'date' => array(
-                'default' => (new \DateTime())->setTimestamp($now + rand(1000, 10000)),
-                'en-US' => (new \DateTime())->setTimestamp($now + rand(1000, 10000)),
-                'fr-FR' => (new \DateTime())->setTimestamp($now + rand(1000, 10000))
+                'default' => (new DateTime())->setTimestamp($now + rand(1000, 10000)),
+                'en-US' => (new DateTime())->setTimestamp($now + rand(1000, 10000)),
+                'fr-FR' => (new DateTime())->setTimestamp($now + rand(1000, 10000))
             ),
             'object' => array(
                 'default' => $entityDefault,
@@ -215,16 +225,18 @@ class PersistenceTest extends FunctionalTestCase {
      * @param string $type
      *
      * @throws IllegalObjectTypeException
+     * @noinspection PhpExpressionResultUnusedInspection
      */
-    protected function insertExampleEntity($type = 'Generic') {
+    protected function insertExampleEntity(string $type = 'Generic'): void
+    {
         switch ($type) {
             case 'Specific':
                 $entity = new Fixture\Model\Specific();
-                $repository = & $this->specificRepository;
+                $repository = &$this->specificRepository;
                 break;
             default:
                 $entity = new Fixture\Model\Generic();
-                $repository = & $this->genericRepository;
+                $repository = &$this->genericRepository;
                 break;
         }
         foreach ($this->data as $type => $values) {
@@ -245,7 +257,8 @@ class PersistenceTest extends FunctionalTestCase {
     /**
      * Remove all example entities to enforce a clean state
      */
-    protected function removeExampleEntities() {
+    protected function removeExampleEntities()
+    {
         $this->genericRepository->removeAll();
         $this->specificRepository->removeAll();
         $this->persistenceManager->persistAll();

@@ -5,8 +5,10 @@
 namespace CDSRC\Libraries\Translatable\ViewHelpers;
 
 
+use Exception;
 use Neos\Flow\I18n\Locale;
 use Neos\FluidAdaptor\Core\ViewHelper\AbstractViewHelper;
+use Traversable;
 
 class OrderByViewHelper extends AbstractViewHelper
 {
@@ -17,7 +19,7 @@ class OrderByViewHelper extends AbstractViewHelper
     protected $escapeOutput = false;
 
     /**
-     * @param \Traversable $items
+     * @param Traversable $items
      * @param string $property
      * @param string|Locale $locale
      * @param string|Locale|null $alternativeLocale
@@ -25,7 +27,7 @@ class OrderByViewHelper extends AbstractViewHelper
      *
      * @return string
      */
-    public function render(\Traversable $items, $property, $locale, $alternativeLocale = null, $as = "items")
+    public function render(Traversable $items, string $property, string|Locale $locale, string|Locale|null $alternativeLocale = null, string $as = "items"): string
     {
         try {
             $sortedArray = [];
@@ -48,7 +50,7 @@ class OrderByViewHelper extends AbstractViewHelper
 
             return $output;
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return '';
         }
     }

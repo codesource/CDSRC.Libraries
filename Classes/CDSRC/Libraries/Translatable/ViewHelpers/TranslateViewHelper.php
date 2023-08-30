@@ -6,6 +6,7 @@
 namespace CDSRC\Libraries\Translatable\ViewHelpers;
 
 use CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface;
+use Exception;
 use Neos\Flow\I18n\Locale;
 use Neos\FluidAdaptor\Core\ViewHelper\AbstractViewHelper;
 
@@ -32,7 +33,7 @@ class TranslateViewHelper extends AbstractViewHelper
      * @return string
      *
      */
-    public function render($property, $locale, $alternativeLocale = null, $object = null)
+    public function render(string $property, Locale|string $locale, Locale|string $alternativeLocale = null, TranslatableInterface $object = null): string
     {
         if(empty($object)){
             $object = $this->renderChildren();
@@ -50,7 +51,7 @@ class TranslateViewHelper extends AbstractViewHelper
                 $alternativeLocaleObject =  $alternativeLocale instanceof Locale ? $alternativeLocale : new Locale($alternativeLocale);
                 return $object->$getter($localeObject, $alternativeLocaleObject);
             }
-        }catch(\Exception $e){
+        }catch(Exception $e){
             return '';
         }
     }

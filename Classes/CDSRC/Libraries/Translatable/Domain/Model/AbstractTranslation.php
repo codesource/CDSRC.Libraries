@@ -9,12 +9,15 @@ use CDSRC\Libraries\Translatable\Annotations as CDSRC;
 use CDSRC\Libraries\Translatable\Annotations\Locked;
 use CDSRC\Libraries\Translatable\Annotations\Translatable;
 use Doctrine\ORM\Mapping as ORM;
+use Exception;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
 use Neos\Flow\I18n\Locale;
 use Neos\Flow\ObjectManagement\Exception\InvalidObjectException;
+use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\Property\Exception\InvalidPropertyException;
 use Neos\Flow\Reflection\Exception\InvalidClassException;
+use Neos\Flow\Reflection\ReflectionService;
 
 /**
  * Abstract class for translation entities
@@ -35,66 +38,66 @@ abstract class AbstractTranslation implements TranslationInterface
      * @Flow\Transient
      * @CDSRC\Locked
      */
-    static protected $propertiesCheckCache = array();
+    static protected array $propertiesCheckCache = array();
 
     /**
-     * @var \Neos\Flow\Persistence\PersistenceManagerInterface
+     * @var PersistenceManagerInterface
      * @Flow\Inject
      * @Flow\Transient
      * @CDSRC\Locked
      */
-    protected $persistenceManager;
+    protected PersistenceManagerInterface $persistenceManager;
 
     /**
-     * @var \Neos\Flow\Reflection\ReflectionService
+     * @var ReflectionService
      * @Flow\Inject
      * @Flow\Transient
      * @CDSRC\Locked
      */
-    protected $reflectionService;
+    protected ReflectionService $reflectionService;
 
     /**
      * Class name of parent
      *
-     * @var string
+     * @var string|null
      * @Flow\Transient
      * @CDSRC\Locked
      */
-    protected $parentClassName;
+    protected ?string $parentClassName;
 
     /**
      * @var string
      * @Flow\Validate(type="NotEmpty")
      * @CDSRC\Locked
      */
-    protected $i18nLocale;
+    protected string $i18nLocale;
 
 
     /**
-     * @var \Neos\Flow\I18n\Locale
+     * @var Locale|null
      * @Flow\Transient
      * @CDSRC\Locked
      */
-    protected $i18nLocaleObject;
+    protected ?Locale $i18nLocaleObject;
 
     /**
-     * @var \CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable
+     * @var AbstractTranslatable
      * @ORM\ManyToOne(inversedBy="translations", cascade={})
      * @ORM\JoinColumn(onDelete="CASCADE")
      * @Flow\Validate(type="NotEmpty")
      * @CDSRC\Locked
      */
-    protected $i18nParent;
+    protected AbstractTranslatable $i18nParent;
 
     /**
      * Constructor
      *
      * @param Locale|string $i18nLocale
-     * @param string $parentClassName
+     * @param string|null $parentClassName
      *
      * @throws InvalidLocaleIdentifierException
      */
-    public function __construct($i18nLocale, $parentClassName = null)
+    public function __construct(Locale|string $i18nLocale, ?string $parentClassName = null)
     {
         $this->setI18nLocale($i18nLocale);
         $this->parentClassName = $parentClassName;
@@ -102,30 +105,30 @@ abstract class AbstractTranslation implements TranslationInterface
 
     /**
      * {@inheritdoc}
+     * @throws InvalidLocaleIdentifierException
      */
-    public function getI18nLocale()
+    public function getI18nLocale(): Locale
     {
         if ($this->i18nLocaleObject === null && strlen($this->i18nLocale) > 0) {
-            try {
-                $this->i18nLocaleObject = new Locale($this->i18nLocale);
-            } catch (\Exception $e) {
-                $this->i18nLocaleObject = null;
-            }
+            $this->i18nLocaleObject = new Locale($this->i18nLocale);
         }
 
         return $this->i18nLocaleObject;
     }
 
     /**
-     * {@inheritdoc}
+     * @param Locale|string $locale
+     *
+     * @return $this
+     *
      * @throws InvalidLocaleIdentifierException
      */
-    public function setI18nLocale($locale)
+    public function setI18nLocale(Locale|string $locale): static
     {
         if (is_string($locale) && strlen($locale) > 0) {
             $locale = new Locale($locale);
         }
-        if (is_object($locale) && $locale instanceof Locale) {
+        if ($locale instanceof Locale) {
             $this->i18nLocaleObject = $locale;
             $this->i18nLocale = (string)$this->i18nLocaleObject;
         }
@@ -136,7 +139,7 @@ abstract class AbstractTranslation implements TranslationInterface
     /**
      * {@inheritdoc}
      */
-    public function getI18nParent()
+    public function getI18nParent(): TranslatableInterface
     {
         return $this->i18nParent;
     }
@@ -144,13 +147,13 @@ abstract class AbstractTranslation implements TranslationInterface
     /**
      * {@inheritdoc}
      */
-    public function setI18nParent(TranslatableInterface $parent, $bidirectional = true)
+    public function setI18nParent(TranslatableInterface $parent, $bidirectional = true): TranslationInterface
     {
         $this->i18nParent = $parent;
         $this->getParentClassName();
 
         if ($bidirectional) {
-            $this->i18nParent->addTranslation($this, false);
+            $this->i18nParent->addTranslation($this);
         }
 
         return $this;
@@ -167,7 +170,7 @@ abstract class AbstractTranslation implements TranslationInterface
      * @throws InvalidClassException
      * @throws InvalidPropertyException
      */
-    public function __call($method, $arguments)
+    public function __call(string $method, array $arguments)
     {
         if (preg_match('/^(get|is|has)([a-z0-9A-Z_]+)$/', $method, $match)) {
             $property = lcfirst($match[2]);
@@ -197,7 +200,7 @@ abstract class AbstractTranslation implements TranslationInterface
      * @throws InvalidClassException
      * @throws InvalidPropertyException
      */
-    protected function get($property)
+    protected function get(string $property): mixed
     {
         $_property = $this->sanitizeProperty($property);
 
@@ -214,7 +217,7 @@ abstract class AbstractTranslation implements TranslationInterface
      * @throws InvalidClassException
      * @throws InvalidPropertyException
      */
-    protected function sanitizeProperty($property)
+    protected function sanitizeProperty(string $property): string
     {
         $_property = lcfirst($property);
         $this->getParentClassName();
@@ -257,7 +260,7 @@ abstract class AbstractTranslation implements TranslationInterface
      *
      * @return boolean
      */
-    protected function propertyExists($property)
+    protected function propertyExists(string $property): bool
     {
         return property_exists($this, $property);
     }
@@ -273,7 +276,7 @@ abstract class AbstractTranslation implements TranslationInterface
      * @throws InvalidClassException
      * @throws InvalidPropertyException
      */
-    protected function set($property, $value)
+    protected function set(string $property, mixed $value): AbstractTranslatable
     {
         $_property = $this->sanitizeProperty($property);
         $this->$_property = $value;
@@ -282,9 +285,9 @@ abstract class AbstractTranslation implements TranslationInterface
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    protected function getParentClassName()
+    protected function getParentClassName(): ?string
     {
         if ($this->parentClassName === null || strlen($this->parentClassName) === 0) {
             if (isset($this->i18nParent)) {
@@ -303,7 +306,7 @@ abstract class AbstractTranslation implements TranslationInterface
     /**
      * @return array
      */
-    protected function getParentTranslatableFields()
+    protected function getParentTranslatableFields(): array
     {
         $parentClassName = $this->getParentClassName();
         if ($parentClassName) {
@@ -323,7 +326,7 @@ abstract class AbstractTranslation implements TranslationInterface
      * @throws InvalidObjectException
      * @throws InvalidPropertyException
      */
-    public function mergeWithTransaction(AbstractTranslation $transaction)
+    public function mergeWithTransaction(AbstractTranslation $transaction): AbstractTranslation
     {
         $currentClassName = get_class($this);
         $otherClassName = get_class($transaction);

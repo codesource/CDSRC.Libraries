@@ -9,6 +9,7 @@ use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Entity;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Generic;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Specific;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\EntityRepository;
+use DateTime;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
 use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Neos\Flow\Tests\FunctionalTestCase;
@@ -27,14 +28,14 @@ class TranslateTest extends FunctionalTestCase
     static protected $testablePersistenceEnabled = true;
 
     /**
-     * @var \CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\EntityRepository
+     * @var EntityRepository
      */
-    protected $entityRepository;
+    protected EntityRepository $entityRepository;
 
     /**
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         if (!$this->persistenceManager instanceof PersistenceManager) {
@@ -55,7 +56,7 @@ class TranslateTest extends FunctionalTestCase
             array('integer', 'is_int', 1, 2, 'en-US'),
             array('float', 'is_float', 1.01, 2.01, 'en-US'),
             array('array', 'is_array', array('test1', 'test2'), array('test3', 'test4'), 'en-US'),
-            array('date', array($this, 'isDateTime'), new \DateTime('2015-06-25 22:22:22'), new \DateTime('2016-01-01 22:22:22'), 'en-US'),
+            array('date', array($this, 'isDateTime'), new DateTime('2015-06-25 22:22:22'), new DateTime('2016-01-01 22:22:22'), 'en-US'),
         );
     }
 
@@ -64,19 +65,18 @@ class TranslateTest extends FunctionalTestCase
      *
      * @test
      *
-     * @throws IllegalObjectTypeException
      */
     public function testObjectOnGenericTranslation()
     {
         $this->markTestIncomplete(
             'This test has not been implemented yet with new feature.'
         );
-        $entitySource = new Entity('dummy1');
-        $entityTranslation = new Entity('dummy2');
-        $this->entityRepository->add($entitySource);
-        $this->entityRepository->add($entityTranslation);
-
-        $this->testOnGenericTranslation('object', 'is_object', $entitySource, $entityTranslation, 'en-US');
+//        $entitySource = new Entity('dummy1');
+//        $entityTranslation = new Entity('dummy2');
+//        $this->entityRepository->add($entitySource);
+//        $this->entityRepository->add($entityTranslation);
+//
+//        $this->testOnGenericTranslation('object', 'is_object', $entitySource, $entityTranslation, 'en-US');
     }
 
     /**
@@ -91,20 +91,20 @@ class TranslateTest extends FunctionalTestCase
      * @test
      * @dataProvider getTranslationTypes
      */
-    public function testOnGenericTranslation($type, $typeCheckFunction, $value, $translatedValue, $language = 'en-US')
+    public function testOnGenericTranslation(string $type, mixed $typeCheckFunction, mixed $value, mixed $translatedValue, string $language = 'en-US')
     {
         $this->markTestIncomplete(
             'This test has not been implemented yet with new feature.'
         );
-        $object = new Generic();
-        $object->$type = $value;
-        $object->setLocaleForTranslation($language)->$type = $translatedValue;
-
-        if (is_callable($typeCheckFunction)) {
-            $this->assertTrue(call_user_func($typeCheckFunction, $object->setLocaleForTranslation($language)->$type));
-        }
-        $this->assertEquals($object->setLocaleForTranslation($language)->$type, $translatedValue);
-        $this->assertNotEquals($object->setLocaleForTranslation($language)->$type, $object->setDefaultLocaleForTranslation()->$type);
+//        $object = new Generic();
+//        $object->$type = $value;
+//        $object->setLocaleForTranslation($language)->$type = $translatedValue;
+//
+//        if (is_callable($typeCheckFunction)) {
+//            $this->assertTrue(call_user_func($typeCheckFunction, $object->setLocaleForTranslation($language)->$type));
+//        }
+//        $this->assertEquals($object->setLocaleForTranslation($language)->$type, $translatedValue);
+//        $this->assertNotEquals($object->setLocaleForTranslation($language)->$type, $object->setDefaultLocaleForTranslation()->$type);
     }
 
     /**
@@ -112,19 +112,18 @@ class TranslateTest extends FunctionalTestCase
      *
      * @test
      *
-     * @throws IllegalObjectTypeException
      */
     public function testObjectOnSpecificTranslation()
     {
         $this->markTestIncomplete(
             'This test has not been implemented yet with new feature.'
         );
-        $entitySource = new Entity('dummy1');
-        $entityTranslation = new Entity('dummy2');
-        $this->entityRepository->add($entitySource);
-        $this->entityRepository->add($entityTranslation);
-
-        $this->testOnSpecificTranslation('object', 'is_object', $entitySource, $entityTranslation, 'en-US');
+//        $entitySource = new Entity('dummy1');
+//        $entityTranslation = new Entity('dummy2');
+//        $this->entityRepository->add($entitySource);
+//        $this->entityRepository->add($entityTranslation);
+//
+//        $this->testOnSpecificTranslation('object', 'is_object', $entitySource, $entityTranslation, 'en-US');
     }
 
     /**
@@ -139,31 +138,31 @@ class TranslateTest extends FunctionalTestCase
      * @test
      * @dataProvider getTranslationTypes
      */
-    public function testOnSpecificTranslation($type, $typeCheckFunction, $value, $translatedValue, $language = 'en-US')
+    public function testOnSpecificTranslation(string $type, mixed $typeCheckFunction, mixed $value, mixed $translatedValue, string $language = 'en-US')
     {
         $this->markTestIncomplete(
             'This test has not been implemented yet with new feature.'
         );
-        $object = new Specific();
-        $object->$type = $value;
-        $object->setLocaleForTranslation($language)->$type = $translatedValue;
-
-        if (is_callable($typeCheckFunction)) {
-            $this->assertTrue(call_user_func($typeCheckFunction, $object->setLocaleForTranslation($language)->$type));
-        }
-        $this->assertEquals($object->setLocaleForTranslation($language)->$type, $translatedValue);
-        $this->assertNotEquals($object->setLocaleForTranslation($language)->$type, $object->setDefaultLocaleForTranslation()->$type);
+//        $object = new Specific();
+//        $object->$type = $value;
+//        $object->setLocaleForTranslation($language)->$type = $translatedValue;
+//
+//        if (is_callable($typeCheckFunction)) {
+//            $this->assertTrue(call_user_func($typeCheckFunction, $object->setLocaleForTranslation($language)->$type));
+//        }
+//        $this->assertEquals($object->setLocaleForTranslation($language)->$type, $translatedValue);
+//        $this->assertNotEquals($object->setLocaleForTranslation($language)->$type, $object->setDefaultLocaleForTranslation()->$type);
     }
 
     /**
      * Check if object is an instance of DateTime
      *
-     * @param \DateTime $object
+     * @param mixed $object
      *
-     * @return boolean
+     * @return bool
      */
-    public function isDateTime($object)
+    public function isDateTime(mixed $object): bool
     {
-        return is_object($object) && $object instanceof \DateTime;
+        return $object instanceof DateTime;
     }
 }

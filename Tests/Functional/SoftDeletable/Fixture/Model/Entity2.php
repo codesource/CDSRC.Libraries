@@ -24,10 +24,10 @@ class Entity2
 
     /**
      *
-     * @var string
+     * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected $type;
+    protected ?string $type;
 
     public function __construct($type = '')
     {

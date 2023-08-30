@@ -7,8 +7,10 @@ namespace CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model;
 
 use CDSRC\Libraries\Translatable\Annotations as CDSRC;
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\I18n\Locale;
 
 /**
  * A dummy class with generic translation
@@ -25,65 +27,66 @@ class Generic extends AbstractTranslatable
      * @var string
      * @ORM\Column(nullable=true)
      */
-    protected $notTranslatableField;
+    protected string $notTranslatableField;
 
     /**
      * @var string
      * @CDSRC\Translatable
      * @ORM\Column(nullable=true)
      */
-    protected $stringField;
+    protected string $stringField;
 
     /**
-     * @var boolean
+     * @var bool
      * @CDSRC\Translatable
      * @ORM\Column(nullable=true)
      */
-    protected $booleanField;
+    protected bool $booleanField;
 
     /**
-     * @var integer
+     * @var int
      * @CDSRC\Translatable
      * @ORM\Column(nullable=true)
      */
-    protected $integerField;
+    protected int $integerField;
 
     /**
      * @var float
      * @CDSRC\Translatable
      * @ORM\Column(nullable=true)
      */
-    protected $floatField;
+    protected float $floatField;
 
     /**
-     * @var \DateTime
+     * @var DateTime
      * @CDSRC\Translatable
      * @ORM\Column(nullable=true)
      */
-    protected $dateField;
+    protected DateTime $dateField;
 
     /**
      * @var array
      * @CDSRC\Translatable
      * @ORM\Column(nullable=true)
      */
-    protected $arrayField;
+    protected array $arrayField;
 
     /**
-     * @var \CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Entity
+     * @var Entity
      * @ORM\ManyToOne
      * @CDSRC\Translatable
      * @ORM\Column(nullable=true)
      */
-    protected $objectField;
+    protected Entity $objectField;
 
     /**
      * Generic variable setter
      *
      * @param string $name
      * @param mixed $value
+     * @noinspection PhpExpressionResultUnusedInspection
      */
-    public function __set($name, $value)
+    public function __set(string $name, mixed $value)
     {
         $match = array();
         if (preg_match('/^(set)?(string|boolean|integer|float|date|array|object)$/i', $name, $match)) {
@@ -100,7 +103,7 @@ class Generic extends AbstractTranslatable
      *
      * @return mixed|null
      */
-    public function __get($name)
+    public function __get(string $name)
     {
         $match = array();
         if (preg_match('/^(get)?(string|boolean|integer|float|date|array|object)$/i', $name, $match)) {
@@ -113,11 +116,12 @@ class Generic extends AbstractTranslatable
     }
 
     /**
-     * @param mixed $locale
+     * @param Locale $locale
      * TODO IMPLEMENT THIS IN ABSTRACT CLASS
-     * @return $this;
+     * @return Generic;
      */
-    public function setLocaleForTranslation($locale){
+    public function setLocaleForTranslation(Locale $locale): static
+    {
         return $this;
     }
 
@@ -125,17 +129,19 @@ class Generic extends AbstractTranslatable
      * TODO IMPLEMENT THIS IN ABSTRACT CLASS
      * @return $this;
      */
-    public function setDefaultLocaleForTranslation(){
+    public function setDefaultLocaleForTranslation(): static
+    {
         return $this;
     }
 
     /**
      * TODO IMPLEMENT THIS IN ABSTRACT CLASS
-     * @param mixed $property
+     * @param string $property
      *
      * @return null
      */
-    public function getPropertyTranslation($property){
+    public function getPropertyTranslation(string $property): null
+    {
         return null;
     }
 
@@ -145,7 +151,8 @@ class Generic extends AbstractTranslatable
      * TODO IMPLEMENT THIS IN ABSTRACT CLASS
      * @return $this;
      */
-    public function setPropertyTranslation($property, $value){
+    public function setPropertyTranslation(string $property, mixed $value): static
+    {
         return $this;
     }
 }

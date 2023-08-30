@@ -19,27 +19,27 @@ trait IpTraceableTrait
     /**
      * IP address on creation
      *
-     * @var string
+     * @var string|null
      * @CDSRC\Traceable(on="create", value="\CDSRC\Libraries\Traceable\Utility\GeneralUtility::getRemoteAddress()")
      * @ORM\Column(nullable=true)
      */
-    protected $createdFromIp = null;
+    protected ?string $createdFromIp = null;
 
     /**
      * IP address on last update
      *
-     * @var string
+     * @var string|null
      * @CDSRC\Traceable(on="update", value="\CDSRC\Libraries\Traceable\Utility\GeneralUtility::getRemoteAddress()")
      * @ORM\Column(nullable=true)
      */
-    protected $updatedFromIp = null;
+    protected ?string $updatedFromIp = null;
 
     /**
      * Get IP address of creation
      *
-     * @return string|NULL
+     * @return string|null
      */
-    public function getCreatedFromIp()
+    public function getCreatedFromIp(): ?string
     {
         return $this->createdFromIp;
     }
@@ -47,9 +47,9 @@ trait IpTraceableTrait
     /**
      * Get IP address of last update
      *
-     * @return string|NULL
+     * @return string|null
      */
-    public function getUpdatedFromIp()
+    public function getUpdatedFromIp(): ?string
     {
         return $this->updatedFromIp;
     }

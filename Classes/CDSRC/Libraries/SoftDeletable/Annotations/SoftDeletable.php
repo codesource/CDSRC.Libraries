@@ -21,20 +21,20 @@ final class SoftDeletable
      *
      * @var string
      */
-    public $deleteProperty = 'deletedAt';
+    public string $deleteProperty = 'deletedAt';
 
     /**
      * Entity property that will allow to hard delete
      *
      * @var string
      */
-    public $hardDeleteProperty = '';
+    public string $hardDeleteProperty = '';
 
     /**
      * Entity can be deleted in future and still be available now
      *
      * @var boolean
      */
-    public $timeAware = false;
+    public bool $timeAware = false;
 
 }

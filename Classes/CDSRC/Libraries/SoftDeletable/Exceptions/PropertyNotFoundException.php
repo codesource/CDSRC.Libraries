@@ -5,10 +5,12 @@
 
 namespace CDSRC\Libraries\SoftDeletable\Exceptions;
 
+use Exception;
+
 /**
  * Annotation property not found exception
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
-class PropertyNotFoundException extends \Exception{
+class PropertyNotFoundException extends Exception{
 }

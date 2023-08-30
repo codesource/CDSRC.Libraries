@@ -8,6 +8,7 @@ namespace CDSRC\Libraries\Tests\Unit\Traceable;
 use CDSRC\Libraries\Exceptions\InvalidValueException;
 use CDSRC\Libraries\Traceable\Annotations\Traceable;
 use Neos\Flow\Tests\UnitTestCase;
+use ReflectionException;
 
 /**
  * Test case for the traceable annotation
@@ -23,7 +24,7 @@ class AnnotationTest extends UnitTestCase {
      * @test
      *
      * @throws InvalidValueException
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function checkAnnotationCreation() {
         // test "on"

@@ -5,6 +5,7 @@
 
 namespace CDSRC\Libraries\Translatable\Domain\Model;
 
+use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
 use Neos\Flow\I18n\Locale;
 
 /**
@@ -23,14 +24,14 @@ interface TranslationInterface
      *
      * @return TranslationInterface
      */
-    public function setI18nParent(TranslatableInterface $parent, $bidirectional = true);
+    public function setI18nParent(TranslatableInterface $parent, bool $bidirectional = true);
 
     /**
      * Get parent
      *
      * @return TranslatableInterface
      */
-    public function getI18nParent();
+    public function getI18nParent(): TranslatableInterface;
 
     /**
      * Set current translation locale
@@ -38,13 +39,17 @@ interface TranslationInterface
      * @param Locale|string $locale
      *
      * @return TranslationInterface
+     *
+     * @throws InvalidLocaleIdentifierException
      */
-    public function setI18nLocale($locale);
+    public function setI18nLocale(Locale|string $locale);
 
     /**
      * Get current translation locale
      *
      * @return Locale
+     *
+     * @throws InvalidLocaleIdentifierException
      */
-    public function getI18nLocale();
+    public function getI18nLocale(): Locale;
 }

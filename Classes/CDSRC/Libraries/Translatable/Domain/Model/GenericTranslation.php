@@ -7,6 +7,7 @@ namespace CDSRC\Libraries\Translatable\Domain\Model;
 
 use CDSRC\Libraries\Translatable\Annotations as CDSRC;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
@@ -25,22 +26,22 @@ class GenericTranslation extends AbstractTranslation implements TranslationInter
 {
 
     /**
-     * @var \Doctrine\Common\Collections\Collection<\CDSRC\Libraries\Translatable\Domain\Model\GenericTranslationField>
+     * @var Collection<GenericTranslationField>
      * @ORM\OneToMany(mappedBy="translation", cascade={"all"}, orphanRemoval=TRUE)
      * @Flow\Lazy
      * @CDSRC\Locked
      */
-    public $fields;
+    public Collection $fields;
 
     /**
      * Constructor
      *
      * @param Locale|string $i18nLocale
-     *
      * @param string $parentClassName
+     *
      * @throws InvalidLocaleIdentifierException
      */
-    public function __construct($i18nLocale, $parentClassName = '')
+    public function __construct(Locale|string $i18nLocale, string $parentClassName = '')
     {
         parent::__construct($i18nLocale, $parentClassName);
         $this->fields = new ArrayCollection();
@@ -56,7 +57,7 @@ class GenericTranslation extends AbstractTranslation implements TranslationInter
      * @throws InvalidPropertyException
      * @throws InvalidClassException
      */
-    protected function get($property)
+    protected function get(string $property): mixed
     {
         $_property = $this->sanitizeProperty($property);
         foreach ($this->fields as $field) {
@@ -74,13 +75,13 @@ class GenericTranslation extends AbstractTranslation implements TranslationInter
      * @param string $property
      * @param mixed $value
      *
-     * @return GenericTranslation
+     * @return AbstractTranslatable
      *
      * @throws InvalidClassException
      * @throws InvalidPropertyException
      * @throws InvalidDataTypeException
      */
-    protected function set($property, $value)
+    protected function set(string $property, mixed $value): AbstractTranslatable
     {
         $_property = $this->sanitizeProperty($property);
         $field = null;
@@ -102,9 +103,9 @@ class GenericTranslation extends AbstractTranslation implements TranslationInter
     /**
      * Get parent class name
      *
-     * @return string
+     * @return string|null
      */
-    protected function getParentClassName()
+    protected function getParentClassName(): ?string
     {
         return $this->parentClassName;
     }

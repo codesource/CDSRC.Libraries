@@ -5,6 +5,7 @@
 
 namespace CDSRC\Libraries\Tests\Functional\Translatable;
 
+use Exception;
 use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
 use Neos\Flow\I18n\Locale;
 use Neos\Flow\Tests\FunctionalTestCase;
@@ -25,28 +26,25 @@ class TranslatableTest extends FunctionalTestCase
     static protected $testablePersistenceEnabled = true;
 
     /** @var Locale */
-    protected $localeDe;
+    protected Locale $localeDe;
 
     /** @var Locale */
-    protected $localeFr;
+    protected Locale $localeFr;
 
     /** @var Locale */
-    protected $localeEn;
+    protected Locale $localeEn;
 
     /** @var Locale */
-    protected $localeIt;
+    protected Locale $localeIt;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
-        try {
-            $this->localeDe = new Locale('de-CH');
-            $this->localeFr = new Locale('fr-CH');
-            $this->localeEn = new Locale('en-US');
-            $this->localeIt = new Locale('it-IT');
-        } catch (InvalidLocaleIdentifierException $e) {
-        }
+        $this->localeDe = new Locale('de-CH');
+        $this->localeFr = new Locale('fr-CH');
+        $this->localeEn = new Locale('en-US');
+        $this->localeIt = new Locale('it-IT');
     }
 
     /**
@@ -101,7 +99,7 @@ class TranslatableTest extends FunctionalTestCase
 
             // Try to get an non-existing translation object
             $this->assertNull($res->getTranslationByLocale(new Locale('en-GB')));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
 
         }
     }
@@ -186,7 +184,7 @@ class TranslatableTest extends FunctionalTestCase
             $category->setCurrentLocale($this->localeEn);
             $this->assertEquals($myEnText, $category->getTitle());
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
 
         }
     }

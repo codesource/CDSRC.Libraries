@@ -33,15 +33,16 @@ class UserTraceableTest extends FunctionalTestCase {
 	protected $testableSecurityEnabled = TRUE;
 
 	/**
-	 * @var \CDSRC\Libraries\Tests\Functional\Traceable\Fixture\Repository\UserTraceableRepository
+	 * @var EntityRepository
 	 */
-	protected $entityRepository;
+	protected EntityRepository $entityRepository;
 
 	/**
 	 * @return void
 	 */
-	public function setUp() {
-		parent::setUp(); 
+	public function setUp(): void
+    {
+		parent::setUp();
 		if (!$this->persistenceManager instanceof PersistenceManager) {
 			$this->markTestSkipped('Doctrine persistence is not enabled');
 		}
@@ -60,25 +61,25 @@ class UserTraceableTest extends FunctionalTestCase {
         $this->persistenceManager->add($account);
         $this->persistenceManager->persistAll();
         $this->authenticateAccount($account);
-        
+
         $entity = new Entity();
         $this->entityRepository->add($entity);
         $this->persistenceManager->persistAll();
         $this->assertEquals($entity->getCreatedBy(), $account);
         $this->assertNull($entity->getUpdatedBy());
-        
+
         $entity->setType('testUserTracing');
         $this->entityRepository->update($entity);
         $this->persistenceManager->persistAll();
         $this->assertEquals($entity->getUpdatedBy(), $account);
-        
+
 		$account2 = new Account();
 		$account2->setAccountIdentifier('testUserTracing2');
 		$account2->setAuthenticationProviderName('TestingProvider');
         $this->persistenceManager->add($account2);
         $this->persistenceManager->persistAll();
         $this->authenticateAccount($account2);
-        
+
         $entity->setType('testUserTracing2');
         $this->entityRepository->update($entity);
         $this->persistenceManager->persistAll();

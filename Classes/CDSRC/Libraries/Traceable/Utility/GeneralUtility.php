@@ -6,6 +6,8 @@
 namespace CDSRC\Libraries\Traceable\Utility;
 
 use Neos\Flow\Core\Bootstrap;
+use Neos\Flow\Exception;
+use Neos\Flow\Security\Account;
 
 /**
  * GeneralUtility for traceable library
@@ -20,21 +22,21 @@ class GeneralUtility
      *
      * @var array
      */
-    protected static $REMOTE_ADDRESS_DATA = array();
+    protected static array $REMOTE_ADDRESS_DATA = [];
 
     /**
-     * @var \Neos\Flow\Core\Bootstrap
+     * @var Bootstrap
      */
-    protected static $bootstrap;
+    protected static Bootstrap $bootstrap;
 
     /**
      * Get remote address
      *
      * @param bool $includeLocalIp
      *
-     * @return NULL|string
+     * @return string|null
      */
-    public static function getRemoteAddress($includeLocalIp = true)
+    public static function getRemoteAddress(bool $includeLocalIp = true): ?string
     {
         if (!$includeLocalIp && isset(self::$REMOTE_ADDRESS_DATA['external'])) {
             return self::$REMOTE_ADDRESS_DATA['external'];
@@ -66,20 +68,19 @@ class GeneralUtility
     /**
      * Retrieve current authenticated account
      *
-     * @return \Neos\Flow\Security\Account|NULL
+     * @return Account|null
      *
-     * @throws \Neos\Flow\Exception
+     * @throws Exception
      */
-    public static function getAuthenticatedAccount()
+    public static function getAuthenticatedAccount(): ?Account
     {
         self::initializeBootstrap();
         if (self::$bootstrap) {
             $objectManager = self::$bootstrap->getObjectManager();
-            if ($objectManager) {
-                $securityContext = $objectManager->get('\Neos\Flow\Security\Context');
-                if ($securityContext && $securityContext->canBeInitialized()) {
-                    return $securityContext->getAccount();
-                }
+            //TODO: We could return "null" if the Object Manager is not available at this stage of the bootstrap run.
+            $securityContext = $objectManager->get('\Neos\Flow\Security\Context');
+            if ($securityContext && $securityContext->canBeInitialized()) {
+                return $securityContext->getAccount();
             }
         }
 

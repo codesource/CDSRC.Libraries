@@ -9,10 +9,13 @@ use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
+use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
+use Neos\Flow\Mvc\Controller\Argument;
 use Neos\Flow\Mvc\View\JsonView;
 use Neos\Flow\Property\Exception\InvalidPropertyException;
 use Neos\Flow\Reflection\Exception\InvalidClassException;
 use ReflectionException;
+use ReflectionMethod;
 
 /**
  * An aspect which centralizes the logging of security relevant actions.
@@ -28,13 +31,15 @@ class JsonViewAspect
      * @Flow\Around("within(Neos\Flow\Mvc\View\JsonView) && method(.*->transformObject())")
      * @param JoinPointInterface $joinPoint The current joinpoint
      *
-     * @return \Neos\Flow\Mvc\Controller\Argument
+     * @return array
      *
      * @throws InvalidClassException
+     * @throws InvalidClassException
+     * @throws InvalidLocaleIdentifierException
      * @throws InvalidPropertyException
      * @throws ReflectionException
      */
-    public function interceptTransformObject(JoinPointInterface $joinPoint)
+    public function interceptTransformObject(JoinPointInterface $joinPoint): array
     {
         $object = $joinPoint->getMethodArgument('object');
 
@@ -80,15 +85,16 @@ class JsonViewAspect
      *
      * @param AbstractTranslatable $object Object to traverse
      * @param array $configuration Configuration for transforming the given object or NULL
-     * @param \Neos\Flow\Mvc\View\JsonView $view
+     * @param JsonView $view
      *
      * @return array Object structure as an array
      *
      * @throws InvalidPropertyException
      * @throws InvalidClassException
      * @throws ReflectionException
+     * @throws InvalidLocaleIdentifierException
      */
-    protected function transformTranslatableObject(AbstractTranslatable $object, array $configuration, JsonView $view)
+    protected function transformTranslatableObject(AbstractTranslatable $object, array $configuration, JsonView $view): array
     {
         $additionalPropertyNames = forward_static_call(array(get_class($object), 'getTranslatableFields'));
 
@@ -134,17 +140,15 @@ class JsonViewAspect
      *
      * @param mixed $value The value to transform
      * @param array $configuration Configuration for transforming the value
-     * @param \Neos\Flow\Mvc\View\JsonView $view
+     * @param JsonView $view
      *
      * @return array The transformed value
      *
      * @throws ReflectionException
      */
-    protected function transformValue($value, array $configuration, JsonView $view)
+    protected function transformValue(mixed $value, array $configuration, JsonView $view)
     {
-        $reflectionMethod = new \ReflectionMethod(get_class($view), 'transformValue');
-        $reflectionMethod->setAccessible(true);
-
+        $reflectionMethod = new ReflectionMethod(get_class($view), 'transformValue');
         return $reflectionMethod->invoke($view, $value, $configuration);
     }
 }

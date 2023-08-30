@@ -5,6 +5,9 @@
 
 namespace CDSRC\Libraries\Utility;
 
+use ReflectionException;
+use ReflectionProperty;
+
 /**
  * General utilities
  *
@@ -18,14 +21,14 @@ class GeneralUtility
      *
      * @var array
      */
-    protected static $traitsByClassName = array();
+    protected static array $traitsByClassName = [];
 
     /**
      * Cache for property annotation
      *
      * @var array
      */
-    protected static $propertiesAnnotations = array();
+    protected static array $propertiesAnnotations = [];
 
     /**
      * Check if object use trait
@@ -35,7 +38,7 @@ class GeneralUtility
      *
      * @return boolean
      */
-    public static function useTrait($object, $trait)
+    public static function useTrait(mixed $object, string $trait): bool
     {
         if (is_object($object)) {
             $className = get_class($object);
@@ -87,15 +90,15 @@ class GeneralUtility
      *
      * @return array
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
-    public static function getPropertyAnnotation($className, $property, $prefix = 'CDSRC\\')
+    public static function getPropertyAnnotation(string $className, string $property, string $prefix = 'CDSRC\\'): array
     {
-        $_className = (string)$className;
-        $_property = (string)$property;
+        $_className = $className;
+        $_property = $property;
         if (!isset(self::$propertiesAnnotations[$_className][$_property])) {
             if (class_exists($className) && property_exists($className, $_property)) {
-                $reflectionProperty = new \ReflectionProperty($_className, $_property);
+                $reflectionProperty = new ReflectionProperty($_className, $_property);
                 $annotations = array();
                 preg_match_all('/@(' . $prefix . '(.*?))\n/s', $reflectionProperty->getDocComment(), $annotations);
                 self::$propertiesAnnotations[$_className][$_property] = $annotations[1];
