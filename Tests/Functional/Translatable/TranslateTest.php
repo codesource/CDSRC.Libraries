@@ -5,13 +5,9 @@
 
 namespace CDSRC\Libraries\Tests\Functional\Translatable;
 
-use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Entity;
-use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Generic;
-use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Specific;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\EntityRepository;
 use DateTime;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
-use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Neos\Flow\Tests\FunctionalTestCase;
 
 /**
@@ -48,7 +44,7 @@ class TranslateTest extends FunctionalTestCase
     /**
      * dataProvider for translation testing
      */
-    public function getTranslationTypes()
+    public function getTranslationTypes(): array
     {
         return array(
             array('string', 'is_string', 'string value', 'translated value', 'en-US'),

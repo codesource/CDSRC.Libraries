@@ -24,7 +24,7 @@ interface TranslationInterface
      *
      * @return TranslationInterface
      */
-    public function setI18nParent(TranslatableInterface $parent, bool $bidirectional = true);
+    public function setI18nParent(TranslatableInterface $parent, bool $bidirectional = true): static;
 
     /**
      * Get parent
@@ -42,7 +42,7 @@ interface TranslationInterface
      *
      * @throws InvalidLocaleIdentifierException
      */
-    public function setI18nLocale(Locale|string $locale);
+    public function setI18nLocale(Locale|string $locale): static;
 
     /**
      * Get current translation locale

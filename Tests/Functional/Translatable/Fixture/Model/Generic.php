@@ -138,9 +138,9 @@ class Generic extends AbstractTranslatable
      * TODO IMPLEMENT THIS IN ABSTRACT CLASS
      * @param string $property
      *
-     * @return null
+     * @return string|null
      */
-    public function getPropertyTranslation(string $property): null
+    public function getPropertyTranslation(string $property): ?string
     {
         return null;
     }

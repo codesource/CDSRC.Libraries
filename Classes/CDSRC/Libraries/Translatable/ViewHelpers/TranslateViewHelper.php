@@ -21,20 +21,38 @@ class TranslateViewHelper extends AbstractViewHelper
      */
     protected $escapeOutput = false;
 
+    /**
+     * Initialize the arguments.
+     *
+     * @return void
+     * @api
+     */
+    public function initializeArguments(): void
+    {
+        parent::initializeArguments();
+        $this->registerArgument('property', 'string', 'Property of the object to be translated', true, null);
+        $this->registerArgument('locale', 'mixed', 'Locale to translate to', true, null);
+        $this->registerArgument('alternativeLocale', 'mixed', 'Fallback locale if given property doesn\'t exist on given Locale', false, null);
+        $this->registerArgument('object', 'CDSRC\\Libraries\\Translatable\\Domain\\Model\\TranslatableInterface', 'The object to be translated', false, null);
+    }
+
 
     /**
      * Store an asset or render stored assets
      *
-     * @param string $property
-     * @param string|Locale $locale
-     * @param string|Locale|null $alternativeLocale
-     * @param TranslatableInterface|null $object
-     *
      * @return string
      *
      */
-    public function render(string $property, Locale|string $locale, Locale|string $alternativeLocale = null, TranslatableInterface $object = null): string
+    public function render(): string
     {
+        $property = $this->arguments['property'] ?: '';
+        $locale = $this->arguments['locale'] ?: '';
+        $alternativeLocale = $this->arguments['alternativeLocale'];
+        $object = $this->arguments['object'];
+
+        if(!$property){
+            return '';
+        }
         if(empty($object)){
             $object = $this->renderChildren();
         }
@@ -46,12 +64,12 @@ class TranslateViewHelper extends AbstractViewHelper
             $localeObject = $locale instanceof Locale ? $locale : new Locale($locale);
             $getter = 'get' .ucfirst($property);
             if($alternativeLocale === null) {
-                return $object->$getter($localeObject);
+                return $object->$getter($localeObject) ?? '';
             }else{
                 $alternativeLocaleObject =  $alternativeLocale instanceof Locale ? $alternativeLocale : new Locale($alternativeLocale);
-                return $object->$getter($localeObject, $alternativeLocaleObject);
+                return $object->$getter($localeObject, $alternativeLocaleObject) ?? '';
             }
-        }catch(Exception $e){
+        }catch(Exception){
             return '';
         }
     }

@@ -5,7 +5,6 @@
 
 namespace CDSRC\Libraries\Translatable\Domain\Model;
 
-use CDSRC\Libraries\Translatable\Annotations\Translatable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -57,7 +56,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
      * @Flow\Transient
      * @var TranslationInterface|null
      */
-    protected ?TranslationInterface $curTranslation;
+    protected ?TranslationInterface $curTranslation = null;
 
 
     /**
@@ -116,9 +115,9 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @param bool $fallback
      *
-     * @return TranslatableInterface
+     * @return AbstractTranslatable
      */
-    public function setFallbackOnTranslation(bool $fallback): TranslatableInterface
+    public function setFallbackOnTranslation(bool $fallback): static
     {
         $this->fallbackOnTranslation = $fallback;
 
@@ -145,11 +144,11 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @return AbstractTranslatable
      */
-    public function addTranslation(TranslationInterface $translation): AbstractTranslatable
+    public function addTranslation(TranslationInterface $translation): static
     {
         try {
             $hasTranslation = $this->hasTranslationForLocale($translation->getI18nLocale());
-        } catch (InvalidLocaleIdentifierException $e) {
+        } catch (InvalidLocaleIdentifierException) {
             $hasTranslation = false;
         }
         if (!($this->getTranslations()->contains($translation) || $hasTranslation)) {
@@ -167,7 +166,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @return TranslatableInterface
      */
-    public function removeTranslation(TranslationInterface $translation): TranslatableInterface
+    public function removeTranslation(TranslationInterface $translation): static
     {
         if ($this->getTranslations()->contains($translation)) {
             $this->getTranslations()->removeElement($translation);
@@ -183,7 +182,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @return TranslatableInterface
      */
-    public function removeTranslationByLocale(Locale $locale): TranslatableInterface
+    public function removeTranslationByLocale(Locale $locale): static
     {
         $translation = $this->getTranslationObjectForLocale($locale);
         if ($translation !== null) {
@@ -198,7 +197,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @return TranslatableInterface
      */
-    public function removeAllTranslations(): TranslatableInterface
+    public function removeAllTranslations(): static
     {
         foreach ($this->getTranslations() as $translation) {
             $this->removeTranslation($translation);
@@ -239,7 +238,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
      *
      * @return AbstractTranslatable
      */
-    public function setCurrentLocale(Locale $locale, bool $forceCreation = false): AbstractTranslatable
+    public function setCurrentLocale(Locale $locale, bool $forceCreation = false): static
     {
         $this->curTranslation = $this->getTranslationObjectForLocale($locale);
 
@@ -253,7 +252,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
     /**
      * Replace all translations by the given collection
      *
-     * @param ArrayCollection<TranslationInterface> $translations
+     * @param Collection<TranslationInterface> $translations
      *
      * @return TranslatableInterface
      *
@@ -262,7 +261,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
      * @throws InvalidObjectException
      * @throws InvalidPropertyException
      */
-    public function setTranslations(ArrayCollection $translations) : TranslatableInterface
+    public function setTranslations(Collection $translations) : static
     {
         $translationsToRemove = [];
 
@@ -271,7 +270,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
             /** @var AbstractTranslation $newTranslation */
             foreach ($translations as $newTranslation) {
                 if ((string)$newTranslation->getI18nLocale() === (string)$translation->getI18nLocale()) {
-                    $translation->mergeWithTransaction($newTranslation);
+                    $translation->mergeWithTranslation($newTranslation);
                     $translations->remove($translations->indexOf($newTranslation));
                     break 2;
                 }
@@ -297,7 +296,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
     {
         try {
             return $this->curTranslation?->getI18nLocale();
-        } catch (InvalidLocaleIdentifierException $e) {
+        } catch (InvalidLocaleIdentifierException) {
             return null;
         }
     }
@@ -305,9 +304,9 @@ abstract class AbstractTranslatable implements TranslatableInterface
     /**
      * Get all translations
      *
-     * @return ArrayCollection<TranslationInterface>
+     * @return Collection<TranslationInterface>
      */
-    public function getTranslations(): ArrayCollection
+    public function getTranslations(): Collection
     {
         return $this->translations ?? new ArrayCollection();
     }
@@ -339,7 +338,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
         foreach ($this->getTranslations() as $translation) {
             try {
                 $locales[] = (string)$translation->getI18nLocale();
-            } catch (InvalidLocaleIdentifierException $e) {
+            } catch (InvalidLocaleIdentifierException) {
             }
         }
 
@@ -441,7 +440,7 @@ abstract class AbstractTranslatable implements TranslatableInterface
 
                     return $translation;
                 }
-            } catch (InvalidLocaleIdentifierException $e) {
+            } catch (InvalidLocaleIdentifierException) {
             }
         }
 

@@ -49,7 +49,7 @@ class GenericTranslationField
      * @var bool|null
      * @ORM\Column(nullable=true)
      */
-    protected ?bool $vBoolean;
+    protected ?bool $vBoolean = null;
 
     /**
      * Generic integer
@@ -57,7 +57,7 @@ class GenericTranslationField
      * @var int|null
      * @ORM\Column(nullable=true)
      */
-    protected ?int $vInteger;
+    protected ?int $vInteger = null;
 
     /**
      * Generic float
@@ -66,7 +66,7 @@ class GenericTranslationField
      * @var float|null
      * @ORM\Column(nullable=true)
      */
-    protected ?float $vFloat;
+    protected ?float $vFloat = null;
 
     /**
      * Generic string
@@ -74,7 +74,7 @@ class GenericTranslationField
      * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected ?string $vString;
+    protected ?string $vString = null;
 
     /**
      * Generic string
@@ -82,7 +82,7 @@ class GenericTranslationField
      * @var string|null
      * @ORM\Column(type="text", nullable=true)
      */
-    protected ?string $vText;
+    protected ?string $vText = null;
 
     /**
      * Generic datetime
@@ -90,7 +90,7 @@ class GenericTranslationField
      * @var DateTime|null
      * @ORM\Column(nullable=true)
      */
-    protected ?DateTime $vDatetime;
+    protected ?DateTime $vDatetime = null;
 
     /**
      * Generic array
@@ -98,7 +98,7 @@ class GenericTranslationField
      * @var string|null
      * @ORM\Column(type="text", nullable=true)
      */
-    protected ?string $vArray;
+    protected ?string $vArray = null;
 
     /**
      * Generic array
@@ -106,24 +106,24 @@ class GenericTranslationField
      * @var array|null
      * @Flow\Transient
      */
-    protected ?array $vArrayUnserialized;
+    protected ?array $vArrayUnserialized = null;
 
 
     /**
      * Generic reference to a translatable object
      *
-     * @var string
+     * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected $objectReference;
+    protected ?string $objectReference = null;
 
     /**
      * Generic class name of the translatable object
      *
-     * @var string
+     * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected $objectClassName;
+    protected ?string $objectClassName = null;
 
     /**
      * Available value type
@@ -131,7 +131,7 @@ class GenericTranslationField
      * @var array
      * @Flow\Transient
      */
-    protected $types = array('vBoolean', 'vInteger', 'vFloat', 'vString', 'vText', 'vDatetime', 'vArray', 'objectReference', 'objectClassName');
+    protected array $types = ['vBoolean', 'vInteger', 'vFloat', 'vString', 'vText', 'vDatetime', 'vArray', 'objectReference', 'objectClassName'];
 
     /**
      * Constructor
@@ -155,7 +155,7 @@ class GenericTranslationField
      *
      * @return string
      */
-    public function getProperty()
+    public function getProperty(): string
     {
         return $this->property;
     }
@@ -165,7 +165,7 @@ class GenericTranslationField
      *
      * @return mixed
      */
-    public function getValue()
+    public function getValue(): mixed
     {
         foreach ($this->types as $type) {
             if ($type !== 'objectClassName' && $this->$type !== null) {

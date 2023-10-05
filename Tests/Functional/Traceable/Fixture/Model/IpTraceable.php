@@ -25,7 +25,7 @@ class IpTraceable
      * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected ?string $type;
+    protected ?string $type = null;
 
     public function __construct($type = '')
     {

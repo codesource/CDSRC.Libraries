@@ -129,12 +129,22 @@ class EventListener
      * @throws ReflectionException
      * @throws InvalidValueException
      */
-    protected function updateEntityPropertyValue(object $entity, string $className, string $propertyName, Traceable $annotation) : array
+    protected function updateEntityPropertyValue(object $entity, string $className, string $propertyName, Traceable $annotation): array
     {
         $property = new ReflectionProperty($className, $propertyName);
         $type = $this->getPropertyType($className, $propertyName, $property);
         $oldValue = $property->getValue($entity);
-        $value = $annotation->getValue($type, $entity);
+        $types = explode('|', $type);
+        $value = null;
+        foreach ($types as $subtype) {
+            $value = $annotation->getValue($subtype, $entity);
+            $valueType = strtolower(gettype($value));
+            if (($valueType === 'object' && $value instanceof $subtype) || ($valueType === 'double' && $subtype === 'float') || $valueType === $subtype) {
+                break;
+            } else {
+                $value = null;
+            }
+        }
         $property->setValue($entity, $value);
 
         return array($oldValue, $value);
@@ -152,7 +162,7 @@ class EventListener
      * @throws ReflectionException
      * @throws VarAnnotationNotFoundException
      */
-    protected function getPropertyType(string $className, string $propertyName, ?ReflectionProperty $property = null) : string
+    protected function getPropertyType(string $className, string $propertyName, ?ReflectionProperty $property = null): string
     {
         if (!isset(self::$storedProperties[$className]['types'][$propertyName])) {
             $property = $property === null ? new ReflectionProperty($className, $propertyName) : $property;
@@ -178,7 +188,7 @@ class EventListener
      * @throws ReflectionException
      * @throws ORMException
      */
-    protected function onFlushForUpdates(object $entity, EntityManager $entityManager, UnitOfWork $unitOfWork)
+    protected function onFlushForUpdates(object $entity, EntityManager $entityManager, UnitOfWork $unitOfWork): void
     {
         $className = get_class($entity);
         $this->initializeAnnotationsForEntity($className);

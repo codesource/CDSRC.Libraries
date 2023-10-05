@@ -90,7 +90,7 @@ class GeneralUtility
     /**
      * Initialize bootstrap
      */
-    protected static function initializeBootstrap()
+    protected static function initializeBootstrap(): void
     {
         if (!self::$bootstrap) {
             self::$bootstrap = Bootstrap::$staticObjectManager->get('Neos\Flow\Core\Bootstrap');

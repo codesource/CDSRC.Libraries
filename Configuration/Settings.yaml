@@ -11,3 +11,7 @@ Neos:
             listener: 'CDSRC\Libraries\Traceable\Events\EventListener'
         filters:
             'cdsrc.libraries.softdeletable.filter': 'CDSRC\Libraries\SoftDeletable\Filters\MarkedAsDeletedFilter'
+
+  FluidAdaptor:
+    namespaces:
+      t: 'CDSRC\Libraries\Translatable\ViewHelpers'

@@ -10,7 +10,6 @@ use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslation;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
 use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
-use Neos\Flow\Mvc\Controller\Argument;
 use Neos\Flow\Mvc\View\JsonView;
 use Neos\Flow\Property\Exception\InvalidPropertyException;
 use Neos\Flow\Reflection\Exception\InvalidClassException;
@@ -146,7 +145,7 @@ class JsonViewAspect
      *
      * @throws ReflectionException
      */
-    protected function transformValue(mixed $value, array $configuration, JsonView $view)
+    protected function transformValue(mixed $value, array $configuration, JsonView $view): array
     {
         $reflectionMethod = new ReflectionMethod(get_class($view), 'transformValue');
         return $reflectionMethod->invoke($view, $value, $configuration);

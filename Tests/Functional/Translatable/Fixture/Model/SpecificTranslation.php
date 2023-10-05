@@ -24,42 +24,42 @@ class SpecificTranslation extends AbstractTranslation implements TranslationInte
      * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected ?string $stringField;
+    protected ?string $stringField = null;
 
     /**
      * @var bool|null
      * @ORM\Column(nullable=true)
      */
-    protected ?bool $booleanField;
+    protected ?bool $booleanField = null;
 
     /**
      * @var int|null
      * @ORM\Column(nullable=true)
      */
-    protected ?int $integerField;
+    protected ?int $integerField = null;
 
     /**
      * @var float|null
      * @ORM\Column(nullable=true)
      */
-    protected ?float $floatField;
+    protected ?float $floatField = null;
 
     /**
      * @var DateTime|null
      * @ORM\Column(nullable=true)
      */
-    protected ?DateTime $dateField;
+    protected ?DateTime $dateField = null;
 
     /**
      * @var array|null
      * @ORM\Column(nullable=true)
      */
-    protected ?array $arrayField;
+    protected ?array $arrayField = null;
 
     /**
-     * @var Entity
+     * @var Entity|null
      * @ORM\ManyToOne
      * @ORM\Column(nullable=true)
      */
-    protected Entity $objectField;
+    protected ?Entity $objectField = null;
 }

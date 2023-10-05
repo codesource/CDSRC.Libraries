@@ -24,7 +24,7 @@ class AnnotationValueParserTest extends UnitTestCase
     /**
      * dataProvider for translation testing
      */
-    public function getValuesResults()
+    public function getValuesResults(): array
     {
         return array(
             // Literal

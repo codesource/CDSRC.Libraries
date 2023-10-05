@@ -25,7 +25,7 @@ class UserTraceable
      * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected ?string $type;
+    protected ?string $type = null;
 
     /**
      * @param string $type

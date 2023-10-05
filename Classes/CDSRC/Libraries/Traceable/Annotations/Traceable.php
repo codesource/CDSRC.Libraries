@@ -115,9 +115,9 @@ final class Traceable
      * @throws InvalidValueException
      * @throws ReflectionException
      */
-    public function getFieldValues(string $type, object $entity)
+    public function getFieldValues(string $type, object $entity): array
     {
-        $values = array();
+        $values = [];
         foreach ($this->fieldValues as $value) {
             $values[] = Parser::getValueForEntity($value, $entity, $type, $this->autoCreate);
         }

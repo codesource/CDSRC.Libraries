@@ -23,7 +23,7 @@ class Entity extends AbstractTranslatable{
      * @var string|null
      * @ORM\Column(nullable=true)
      */
-    protected ?string $type;
+    protected ?string $type = null;
 
     /**
      * Entity constructor.

@@ -8,7 +8,6 @@ namespace CDSRC\Libraries\Tests\Functional\Translatable;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model\Category;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\CategoryRepository;
 use Neos\Error\Messages\Result;
-use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
 use Neos\Flow\I18n\Locale;
 use Neos\Flow\Mvc\Controller\Argument;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;

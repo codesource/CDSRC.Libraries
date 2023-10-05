@@ -10,6 +10,8 @@ use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\EntityRepos
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\GenericRepository;
 use CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Repository\SpecificRepository;
 use DateTime;
+use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
+use Neos\Flow\I18n\Locale;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
 use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Neos\Flow\Tests\FunctionalTestCase;
@@ -74,6 +76,7 @@ class PersistenceTest extends FunctionalTestCase
      * @test
      *
      * @throws IllegalObjectTypeException
+     * @throws InvalidLocaleIdentifierException
      */
     public function genericEntitiesArePersistedAndReconstituted()
     {
@@ -101,6 +104,7 @@ class PersistenceTest extends FunctionalTestCase
      * @test
      *
      * @throws IllegalObjectTypeException
+     * @throws InvalidLocaleIdentifierException
      */
     public function specificEntitiesArePersistedAndReconstituted()
     {
@@ -128,6 +132,7 @@ class PersistenceTest extends FunctionalTestCase
      * @test
      *
      * @throws IllegalObjectTypeException
+     * @throws InvalidLocaleIdentifierException
      */
     public function genericAndSpecificAreSame()
     {
@@ -166,7 +171,7 @@ class PersistenceTest extends FunctionalTestCase
      *
      * @throws IllegalObjectTypeException
      */
-    public function generateData()
+    public function generateData(): void
     {
         $entityDefault = new Entity('default');
         $entityEnUs = new Entity('en-US');
@@ -225,7 +230,7 @@ class PersistenceTest extends FunctionalTestCase
      * @param string $type
      *
      * @throws IllegalObjectTypeException
-     * @noinspection PhpExpressionResultUnusedInspection
+     * @throws InvalidLocaleIdentifierException
      */
     protected function insertExampleEntity(string $type = 'Generic'): void
     {
@@ -244,7 +249,7 @@ class PersistenceTest extends FunctionalTestCase
                 if ($locale === 'default') {
                     $entity->setDefaultLocaleForTranslation();
                 } else {
-                    $entity->setLocaleForTranslation($locale);
+                    $entity->setLocaleForTranslation(new Locale($locale));
                 }
                 $entity->$type = $value;
             }
@@ -257,7 +262,7 @@ class PersistenceTest extends FunctionalTestCase
     /**
      * Remove all example entities to enforce a clean state
      */
-    protected function removeExampleEntities()
+    protected function removeExampleEntities(): void
     {
         $this->genericRepository->removeAll();
         $this->specificRepository->removeAll();

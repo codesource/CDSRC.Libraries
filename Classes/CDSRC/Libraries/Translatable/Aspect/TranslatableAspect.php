@@ -12,10 +12,7 @@ use CDSRC\Libraries\Translatable\Domain\Model\TranslatableInterface;
 use CDSRC\Libraries\Translatable\Property\TypeConverter\LocaleTypeConverter;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
-use Doctrine\ORM\Query;
-use Doctrine\ORM\QueryBuilder;
 use Exception;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
@@ -75,7 +72,7 @@ class TranslatableAspect
      * @throws ReflectionException
      * @throws Exception
      */
-    public function fixTranslatableArguments(JoinPointInterface $joinPoint)
+    public function fixTranslatableArguments(JoinPointInterface $joinPoint): Argument
     {
         /** @var Argument $argument */
         $argument = $joinPoint->getProxy();
@@ -107,7 +104,7 @@ class TranslatableAspect
      * @return array
      * @throws Exception
      */
-    protected function updateRawValueMethodArgument(JoinPointInterface $joinPoint)
+    protected function updateRawValueMethodArgument(JoinPointInterface $joinPoint): array
     {
         /** @var Argument $argument */
         $argument = $joinPoint->getProxy();
@@ -151,7 +148,7 @@ class TranslatableAspect
      *
      * @return array
      */
-    protected function getTranslationProperties($translationClassName)
+    protected function getTranslationProperties($translationClassName): array
     {
         if (!isset($this->translationProperties[$translationClassName])) {
             $properties = $this->reflectionService->getClassPropertyNames($translationClassName);
@@ -179,7 +176,7 @@ class TranslatableAspect
      *
      * @return array
      */
-    protected function getTranslationsAndUpdateRawValue(array &$rawValue, array $translationProperties)
+    protected function getTranslationsAndUpdateRawValue(array &$rawValue, array $translationProperties): array
     {
         $translations = array();
         foreach ($rawValue as $property => $value) {
@@ -231,9 +228,9 @@ class TranslatableAspect
      *
      * @param $translationClassName
      *
-     * @return string
+     * @return string|null
      */
-    protected function getTranslationIdentifierPropertyName($translationClassName)
+    protected function getTranslationIdentifierPropertyName($translationClassName): ?string
     {
         if (!isset($this->translationIdentifierPropertyName[$translationClassName])) {
             $propertyNames = $this->reflectionService->getPropertyNamesByAnnotation($translationClassName,
@@ -411,7 +408,7 @@ class TranslatableAspect
      *
      * @return array
      */
-    protected function sanitizeValidationResultsPropertyKeys(array $flattenedMessages)
+    protected function sanitizeValidationResultsPropertyKeys(array $flattenedMessages): array
     {
         $sanitizedFlattenedMessages = array();
         foreach ($flattenedMessages as $key => $message) {

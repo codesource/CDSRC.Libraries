@@ -9,7 +9,6 @@ use CDSRC\Libraries\Translatable\Annotations as CDSRC;
 use CDSRC\Libraries\Translatable\Annotations\Locked;
 use CDSRC\Libraries\Translatable\Annotations\Translatable;
 use Doctrine\ORM\Mapping as ORM;
-use Exception;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\I18n\Exception\InvalidLocaleIdentifierException;
 use Neos\Flow\I18n\Locale;
@@ -63,14 +62,14 @@ abstract class AbstractTranslation implements TranslationInterface
      * @Flow\Transient
      * @CDSRC\Locked
      */
-    protected ?string $parentClassName;
+    protected ?string $parentClassName = null;
 
     /**
      * @var string
      * @Flow\Validate(type="NotEmpty")
      * @CDSRC\Locked
      */
-    protected string $i18nLocale;
+    protected string $i18nLocale = '';
 
 
     /**
@@ -78,16 +77,16 @@ abstract class AbstractTranslation implements TranslationInterface
      * @Flow\Transient
      * @CDSRC\Locked
      */
-    protected ?Locale $i18nLocaleObject;
+    protected ?Locale $i18nLocaleObject = null;
 
     /**
-     * @var AbstractTranslatable
+     * @var AbstractTranslatable|null
      * @ORM\ManyToOne(inversedBy="translations", cascade={})
      * @ORM\JoinColumn(onDelete="CASCADE")
      * @Flow\Validate(type="NotEmpty")
      * @CDSRC\Locked
      */
-    protected AbstractTranslatable $i18nParent;
+    protected ?AbstractTranslatable $i18nParent = null;
 
     /**
      * Constructor
@@ -147,7 +146,7 @@ abstract class AbstractTranslation implements TranslationInterface
     /**
      * {@inheritdoc}
      */
-    public function setI18nParent(TranslatableInterface $parent, $bidirectional = true): TranslationInterface
+    public function setI18nParent(TranslatableInterface $parent, $bidirectional = true): static
     {
         $this->i18nParent = $parent;
         $this->getParentClassName();
@@ -318,7 +317,7 @@ abstract class AbstractTranslation implements TranslationInterface
 
 
     /**
-     * @param AbstractTranslation $transaction
+     * @param AbstractTranslation $translation
      *
      * @return AbstractTranslation
      *
@@ -326,10 +325,10 @@ abstract class AbstractTranslation implements TranslationInterface
      * @throws InvalidObjectException
      * @throws InvalidPropertyException
      */
-    public function mergeWithTransaction(AbstractTranslation $transaction): AbstractTranslation
+    public function mergeWithTranslation(AbstractTranslation $translation): static
     {
         $currentClassName = get_class($this);
-        $otherClassName = get_class($transaction);
+        $otherClassName = get_class($translation);
         if ($currentClassName !== $otherClassName) {
             throw new InvalidObjectException(
                 sprintf('Transactions are not same class "%s" <> "%s"', $currentClassName, $otherClassName),
@@ -338,7 +337,7 @@ abstract class AbstractTranslation implements TranslationInterface
         }
 
         foreach ($this->getParentTranslatableFields() as $field) {
-            $this->set($field, $transaction->get($field));
+            $this->set($field, $translation->get($field));
         }
 
         return $this;

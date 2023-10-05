@@ -9,7 +9,6 @@ use Neos\Flow\Annotations as Flow;
 use Doctrine\ORM\Mapping as ORM;
 use CDSRC\Libraries\Traceable\Domain\Model\TimestampableTrait;
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;
-use CDSRC\Libraries\Translatable\Annotations as CDSRC;
 use Neos\Flow\I18n\Locale;
 
 /**
@@ -45,7 +44,8 @@ class Category extends AbstractTranslatable
     }
 
     /** @return string */
-	public function getColor() {
+	public function getColor(): string
+    {
 		return $this->color;
 	}
 

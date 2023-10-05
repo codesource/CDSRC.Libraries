@@ -99,7 +99,7 @@ class TranslatableTest extends FunctionalTestCase
 
             // Try to get an non-existing translation object
             $this->assertNull($res->getTranslationByLocale(new Locale('en-GB')));
-        } catch (Exception $e) {
+        } catch (Exception) {
 
         }
     }
@@ -143,7 +143,7 @@ class TranslatableTest extends FunctionalTestCase
             $category->setCurrentLocale($this->localeDe, true);
             $category->setTitle('foobar');
             $this->assertEquals('foobar', $category->getTitle());
-        } catch (InvalidLocaleIdentifierException $e) {
+        } catch (InvalidLocaleIdentifierException) {
 
         }
     }
@@ -184,7 +184,7 @@ class TranslatableTest extends FunctionalTestCase
             $category->setCurrentLocale($this->localeEn);
             $this->assertEquals($myEnText, $category->getTitle());
 
-        } catch (Exception $e) {
+        } catch (Exception) {
 
         }
     }

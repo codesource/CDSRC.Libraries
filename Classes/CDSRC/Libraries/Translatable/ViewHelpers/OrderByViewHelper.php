@@ -19,16 +19,33 @@ class OrderByViewHelper extends AbstractViewHelper
     protected $escapeOutput = false;
 
     /**
-     * @param Traversable $items
-     * @param string $property
-     * @param string|Locale $locale
-     * @param string|Locale|null $alternativeLocale
-     * @param string $as
+     * Initialize the arguments.
      *
+     * @return void
+     * @api
+     */
+    public function initializeArguments(): void
+    {
+        parent::initializeArguments();
+        $this->registerArgument('items', 'Traversable', 'Translatable item list', true, null);
+        $this->registerArgument('property', 'string', 'The property to order by', true, null);
+        $this->registerArgument('locale', 'mixed', 'Locale to translate to', true, null);
+        $this->registerArgument('alternativeLocale', 'mixed', 'Fallback locale if given property doesn\'t exist on given Locale', false, null);
+        $this->registerArgument('as', 'string', '', false, 'items');
+    }
+
+
+    /**
      * @return string
      */
-    public function render(Traversable $items, string $property, string|Locale $locale, string|Locale|null $alternativeLocale = null, string $as = "items"): string
+    public function render(): string
     {
+        $items = $this->arguments['items'] ?: [];
+        $property = $this->arguments['property'];
+        $locale = $this->arguments['locale'];
+        $alternativeLocale = $this->arguments['alternativeLocale'];
+        $as = $this->arguments['locale'] ?: "items";
+
         try {
             $sortedArray = [];
             $localeObject = $locale instanceof Locale ? $locale : new Locale($locale);
@@ -50,7 +67,7 @@ class OrderByViewHelper extends AbstractViewHelper
 
             return $output;
 
-        } catch (Exception $e) {
+        } catch (Exception) {
             return '';
         }
     }

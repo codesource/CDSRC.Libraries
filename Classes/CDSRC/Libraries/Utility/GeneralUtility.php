@@ -61,7 +61,7 @@ class GeneralUtility
      *
      * @return array
      */
-    public static function class_uses_recursive($class)
+    public static function class_uses_recursive($class): array
     {
         $allTraits = array();
         $traits = class_uses($class);

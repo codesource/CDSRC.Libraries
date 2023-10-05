@@ -5,7 +5,6 @@
 
 namespace CDSRC\Libraries\Tests\Functional\Translatable\Fixture\Model;
 
-use CDSRC\Libraries\Translatable\Annotations as CDSRC;
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
 

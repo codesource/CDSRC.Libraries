@@ -5,7 +5,6 @@
 
 namespace CDSRC\Libraries\Tests\Unit\Translatable\Fixture\Model;
 
-use CDSRC\Libraries\Translatable\Annotations as CDSRC;
 use CDSRC\Libraries\Translatable\Domain\Model\AbstractTranslatable;
 use Neos\Flow\Annotations as Flow;
 

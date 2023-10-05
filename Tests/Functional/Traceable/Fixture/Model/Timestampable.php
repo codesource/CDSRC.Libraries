@@ -48,15 +48,18 @@ class Timestampable {
         $this->type = $type;
     }
 
-    public function setType($type) {
+    public function setType($type): void
+    {
         $this->type = $type;
     }
 
-    public function getChangedAt() {
+    public function getChangedAt(): DateTime
+    {
         return $this->changedAt;
     }
 
-    public function getChangedAtIf() {
+    public function getChangedAtIf(): DateTime
+    {
         return $this->changedAtIf;
     }
 }

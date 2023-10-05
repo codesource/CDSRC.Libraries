@@ -47,9 +47,9 @@ abstract class AbstractRepository extends Repository
 
     /**
      *
-     * @return $this
+     * @return AbstractRepository
      */
-    public function allowDeleted()
+    public function allowDeleted(): AbstractRepository
     {
         $this->enableDeleted = true;
 

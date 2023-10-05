@@ -104,7 +104,7 @@ class Version20151212051456 extends AbstractMigration
      */
 	protected function findExistingForeignKeyConstraintsForTableName(): array
     {
-        return $queryBuilderTemplate = $this->connection->createQueryBuilder()
+        return $this->connection->createQueryBuilder()
             ->select('*')
             ->from('information_schema.KEY_COLUMN_USAGE', 'u')
             ->join('u', 'information_schema.REFERENTIAL_CONSTRAINTS', 'r', 'u.CONSTRAINT_NAME = r.CONSTRAINT_NAME')

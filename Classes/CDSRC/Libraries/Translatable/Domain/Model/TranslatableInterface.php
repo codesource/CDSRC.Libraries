@@ -5,7 +5,7 @@
 
 namespace CDSRC\Libraries\Translatable\Domain\Model;
 
-use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Neos\Flow\I18n\Locale;
 
 /**
@@ -24,7 +24,7 @@ interface TranslatableInterface
      *
      * @return TranslatableInterface
      */
-    public function addTranslation(TranslationInterface $translation);
+    public function addTranslation(TranslationInterface $translation): static;
 
     /**
      * Remove a translation
@@ -33,7 +33,7 @@ interface TranslatableInterface
      *
      * @return TranslatableInterface
      */
-    public function removeTranslation(TranslationInterface $translation);
+    public function removeTranslation(TranslationInterface $translation): static;
 
     /**
      * Remove a translation by locale
@@ -42,30 +42,30 @@ interface TranslatableInterface
      *
      * @return TranslatableInterface
      */
-    public function removeTranslationByLocale(Locale $locale);
+    public function removeTranslationByLocale(Locale $locale): static;
 
     /**
      * Remove all translations
      *
      * @return TranslatableInterface
      */
-    public function removeAllTranslations(): TranslatableInterface;
+    public function removeAllTranslations(): static;
 
     /**
      * Replace all translations by the given collection
      *
-     * @param ArrayCollection<TranslationInterface> $translations
+     * @param Collection<TranslationInterface> $translations
      *
      * @return TranslatableInterface
      */
-    public function setTranslations(ArrayCollection $translations);
+    public function setTranslations(Collection $translations): static;
 
     /**
      * Get all translations
      *
-     * @return ArrayCollection<TranslationInterface>
+     * @return Collection<TranslationInterface>
      */
-    public function getTranslations(): ArrayCollection;
+    public function getTranslations(): Collection;
 
     /**
      * Get translation class name
@@ -97,7 +97,7 @@ interface TranslatableInterface
      *
      * @return TranslatableInterface
      */
-    public function setFallbackOnTranslation(bool $fallback);
+    public function setFallbackOnTranslation(bool $fallback): static;
 
     /**
      * Return unannotated translatable fields

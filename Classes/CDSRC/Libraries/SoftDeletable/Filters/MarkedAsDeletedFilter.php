@@ -14,13 +14,12 @@ use Doctrine\ORM\Query\Filter\SQLFilter;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Core\Bootstrap;
 use Neos\Flow\Reflection\ReflectionService;
-use ReflectionException;
 use ReflectionProperty;
 
 /**
  * ORM query filter to get only active entities
  *
- * @Flow\Proxy
+ * @Flow\Proxy(false)
  *
  * @author Matthias Toscanelli <m.toscanelli@code-source.ch>
  */
@@ -44,12 +43,12 @@ class MarkedAsDeletedFilter extends SQLFilter
     /**
      * @var ReflectionService|null
      */
-    protected ?ReflectionService $reflectionService;
+    protected ?ReflectionService $reflectionService = null;
 
     /**
      * @var EntityManager|null
      */
-    protected ?EntityManager $entityManager;
+    protected ?EntityManager $entityManager = null;
 
     /**
      * {@inheritdoc}
@@ -57,12 +56,12 @@ class MarkedAsDeletedFilter extends SQLFilter
      * @param ClassMetadata $targetEntity
      * @param $targetTableAlias
      *
-     * @return false|mixed|string
+     * @return mixed
      *
      * @throws Exception
      * @throws PropertyNotFoundException
      */
-    public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias)
+    public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias): mixed
     {
         $className = $targetEntity->getName();
         if (isset(self::$disabled[$className])) {
