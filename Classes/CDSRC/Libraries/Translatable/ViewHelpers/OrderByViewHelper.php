@@ -44,7 +44,7 @@ class OrderByViewHelper extends AbstractViewHelper
         $property = $this->arguments['property'];
         $locale = $this->arguments['locale'];
         $alternativeLocale = $this->arguments['alternativeLocale'];
-        $as = $this->arguments['locale'] ?: "items";
+        $as = $this->arguments['as'] ?: "items";
 
         try {
             $sortedArray = [];
